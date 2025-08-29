@@ -1,4 +1,4 @@
-/ backend/crs / jobs / email.job.ts;
+// backend/crs / jobs / email.job.ts;
 import cron from "node-cron";
 import { prisma } from "../config/database";
 import { GmailService } from "../services/integrations/gmail.service";
