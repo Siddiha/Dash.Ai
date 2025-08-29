@@ -183,47 +183,7 @@ function Landing() {
                 Everything
               </span>
             </h1>
-            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-              Join thousands of professionals who've automated their busywork with Dash.AI
-            </p>
-            <button
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-12 py-4 rounded-lg text-xl font-semibold hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 disabled:opacity-50"
-            >
-              {isLoading ? 'Starting...' : 'Start Free Today'}
-            </button>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-white/10 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                Dash.AI
-              </span>
-              <p className="text-gray-400 mt-2">The AI assistant for everything</p>
-            </div>
-            <div className="flex space-x-6 text-gray-400">
-              <a href="#" className="hover:text-white transition-colors">Privacy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms</a>
-              <a href="#" className="hover:text-white transition-colors">Support</a>
-              <a href="#" className="hover:text-white transition-colors">Docs</a>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t border-white/10 text-center text-gray-400">
-            <p>&copy; 2024 Dash.AI. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-export default Landing; text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
               Dash.AI connects to all your tools to complete entire tasks. Manage emails, schedule meetings, 
               update databases, and coordinate your team - all through natural conversation.
             </p>
@@ -409,4 +369,44 @@ export default Landing; text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
             <h2 className="text-4xl font-bold text-white mb-6">
               Ready to Transform Your Workflow?
             </h2>
-            <p className="text-xl
+            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+              Join thousands of professionals who've automated their busywork with Dash.AI
+            </p>
+            <button
+              onClick={handleGoogleLogin}
+              disabled={isLoading}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-12 py-4 rounded-lg text-xl font-semibold hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 disabled:opacity-50"
+            >
+              {isLoading ? 'Starting...' : 'Start Free Today'}
+            </button>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-white/10 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="mb-4 md:mb-0">
+              <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                Dash.AI
+              </span>
+              <p className="text-gray-400 mt-2">The AI assistant for everything</p>
+            </div>
+            <div className="flex space-x-6 text-gray-400">
+              <a href="#" className="hover:text-white transition-colors">Privacy</a>
+              <a href="#" className="hover:text-white transition-colors">Terms</a>
+              <a href="#" className="hover:text-white transition-colors">Support</a>
+              <a href="#" className="hover:text-white transition-colors">Docs</a>
+            </div>
+          </div>
+          <div className="mt-8 pt-8 border-t border-white/10 text-center text-gray-400">
+            <p>&copy; 2024 Dash.AI. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+export default Landing;
