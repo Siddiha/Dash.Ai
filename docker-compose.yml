@@ -1,0 +1,691 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: dash-ai-postgres
+    environment:
+      POSTGRES_DB: dashai
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/prisma/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - dash-ai-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: dash-ai-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - dash-ai-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dash-ai-backend
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: postgresql://postgres:password123@postgres:5432/dashai
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      NOTION_CLIENT_ID: ${NOTION_CLIENT_ID}
+      NOTION_CLIENT_SECRET: ${NOTION_CLIENT_SECRET}
+      SLACK_CLIENT_ID: ${SLACK_CLIENT_ID}
+      SLACK_CLIENT_SECRET: ${SLACK_CLIENT_SECRET}
+      HUBSPOT_CLIENT_ID: ${HUBSPOT_CLIENT_ID}
+      HUBSPOT_CLIENT_SECRET: ${HUBSPOT_CLIENT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
+      BACKEND_URL: ${BACKEND_URL}
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend/logs:/app/logs
+    networks:
+      - dash-ai-network
+
+  # Frontend React App
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL}
+    container_name: dash-ai-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - dash-ai-network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: dash-ai-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - dash-ai-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  dash-ai-network:
+    driver: bridge
+
+---
+
+# backend/Dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copy source code
+COPY . .
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Build the application
+RUN npm run build
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+
+# Change ownership of the app directory
+RUN chown -R nextjs:nodejs /app
+
+USER nextjs
+
+EXPOSE 5000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:5000/health || exit 1
+
+CMD ["npm", "start"]
+
+---
+
+# frontend/Dockerfile
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Build arguments
+ARG REACT_APP_API_URL
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+
+# Build the application
+RUN npm run build
+
+# Production stage
+FROM nginx:alpine
+
+# Copy built files
+COPY --from=builder /app/build /usr/share/nginx/html
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Add health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
+
+EXPOSE 3000
+
+CMD ["nginx", "-g", "daemon off;"]
+
+---
+
+# frontend/nginx.conf
+server {
+    listen 3000;
+    server_name localhost;
+
+    root /usr/share/nginx/html;
+    index index.html index.htm;
+
+    # Handle React Router
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Cache static assets
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+}
+
+---
+
+# nginx/nginx.conf
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    # Logging
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+    # Rate limiting
+    limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+    limit_req_zone $binary_remote_addr zone=login:10m rate=1r/s;
+
+    upstream backend {
+        server backend:5000;
+    }
+
+    upstream frontend {
+        server frontend:3000;
+    }
+
+    server {
+        listen 80;
+        server_name localhost;
+
+        # Redirect HTTP to HTTPS in production
+        # return 301 https://$server_name$request_uri;
+    }
+
+    server {
+        listen 443 ssl http2;
+        server_name localhost;
+
+        # SSL configuration (uncomment for production)
+        # ssl_certificate /etc/nginx/ssl/cert.pem;
+        # ssl_certificate_key /etc/nginx/ssl/key.pem;
+        # ssl_protocols TLSv1.2 TLSv1.3;
+        # ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384;
+
+        # API routes
+        location /api/ {
+            limit_req zone=api burst=20 nodelay;
+            
+            proxy_pass http://backend;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_cache_bypass $http_upgrade;
+
+            # CORS headers
+            add_header Access-Control-Allow-Origin "$http_origin" always;
+            add_header Access-Control-Allow-Credentials true always;
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+            add_header Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization" always;
+
+            # Handle preflight requests
+            if ($request_method = 'OPTIONS') {
+                add_header Access-Control-Allow-Origin "$http_origin" always;
+                add_header Access-Control-Allow-Credentials true always;
+                add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+                add_header Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization" always;
+                add_header Access-Control-Max-Age 1728000;
+                add_header Content-Type 'text/plain; charset=utf-8';
+                add_header Content-Length 0;
+                return 204;
+            }
+        }
+
+        # Socket.IO
+        location /socket.io/ {
+            proxy_pass http://backend;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        # Frontend routes
+        location / {
+            proxy_pass http://frontend;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_cache_bypass $http_upgrade;
+
+            # Cache static assets
+            location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+                proxy_pass http://frontend;
+                expires 1y;
+                add_header Cache-Control "public, immutable";
+            }
+        }
+
+        # Security headers
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    }
+}
+
+---
+
+# .env.example
+# Database
+DATABASE_URL="postgresql://postgres:password123@localhost:5432/dashai"
+REDIS_URL="redis://localhost:6379"
+
+# JWT
+JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
+
+# OpenAI
+OPENAI_API_KEY="sk-your-openai-api-key-here"
+
+# Google OAuth (Gmail, Calendar, Drive, etc.)
+GOOGLE_CLIENT_ID="your-google-client-id.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+# Notion
+NOTION_CLIENT_ID="your-notion-client-id"
+NOTION_CLIENT_SECRET="your-notion-client-secret"
+
+# Slack
+SLACK_CLIENT_ID="your-slack-client-id"
+SLACK_CLIENT_SECRET="your-slack-client-secret"
+
+# HubSpot
+HUBSPOT_CLIENT_ID="your-hubspot-client-id"
+HUBSPOT_CLIENT_SECRET="your-hubspot-client-secret"
+
+# Linear
+LINEAR_API_KEY="your-linear-api-key"
+
+# Twilio (for phone integration)
+TWILIO_ACCOUNT_SID="your-twilio-account-sid"
+TWILIO_AUTH_TOKEN="your-twilio-auth-token"
+TWILIO_PHONE_NUMBER="+1234567890"
+
+# App URLs
+FRONTEND_URL="http://localhost:3000"
+BACKEND_URL="http://localhost:5000"
+REACT_APP_API_URL="http://localhost:5000/api"
+
+# Production Settings
+NODE_ENV="development"
+PORT=5000
+
+---
+
+# scripts/setup.sh
+#!/bin/bash
+
+echo "🚀 Setting up Dash.AI..."
+
+# Check if Docker is installed
+if ! command -v docker &> /dev/null; then
+    echo "❌ Docker is not installed. Please install Docker first."
+    exit 1
+fi
+
+# Check if Docker Compose is installed
+if ! command -v docker-compose &> /dev/null; then
+    echo "❌ Docker Compose is not installed. Please install Docker Compose first."
+    exit 1
+fi
+
+# Create .env file from template if it doesn't exist
+if [ ! -f .env ]; then
+    echo "📝 Creating .env file from template..."
+    cp .env.example .env
+    echo "⚠️  Please update the .env file with your actual API keys and configuration."
+else
+    echo "✅ .env file already exists"
+fi
+
+# Create necessary directories
+echo "📁 Creating directories..."
+mkdir -p backend/logs
+mkdir -p nginx/ssl
+
+# Install dependencies
+echo "📦 Installing dependencies..."
+
+# Backend dependencies
+echo "Installing backend dependencies..."
+cd backend
+npm install
+cd ..
+
+# Frontend dependencies
+echo "Installing frontend dependencies..."
+cd frontend
+npm install
+cd ..
+
+# Root dependencies
+npm install
+
+# Generate Prisma client
+echo "🗄️  Setting up database..."
+cd backend
+npx prisma generate
+
+# Start Docker services
+echo "🐳 Starting Docker services..."
+cd ..
+docker-compose up -d postgres redis
+
+# Wait for database to be ready
+echo "⏳ Waiting for database to be ready..."
+sleep 10
+
+# Run database migrations
+echo "🔄 Running database migrations..."
+cd backend
+npx prisma db push
+npx prisma db seed
+cd ..
+
+echo "✅ Setup completed!"
+echo ""
+echo "Next steps:"
+echo "1. Update your .env file with real API keys"
+echo "2. Run 'npm run dev' to start development servers"
+echo "3. Visit http://localhost:3000 to see your app"
+echo ""
+echo "For production deployment:"
+echo "1. Update .env with production values"
+echo "2. Run 'docker-compose up -d' to start all services"
+
+---
+
+# scripts/deploy.sh
+#!/bin/bash
+
+echo "🚀 Deploying Dash.AI to production..."
+
+# Build and deploy with Docker Compose
+echo "🐳 Building and starting services..."
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+
+# Wait for services to be healthy
+echo "⏳ Waiting for services to be healthy..."
+sleep 30
+
+# Check service health
+echo "🏥 Checking service health..."
+docker-compose ps
+
+# Run database migrations in production
+echo "🗄️  Running production database migrations..."
+docker-compose exec backend npx prisma db push
+docker-compose exec backend npx prisma db seed
+
+# Show logs
+echo "📊 Showing recent logs..."
+docker-compose logs --tail=50
+
+echo "✅ Deployment completed!"
+echo "Your app should be available at your configured domain/IP"
+
+---
+
+# .dockerignore
+node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+.env
+.env.local
+.env.production.local
+.env.test.local
+coverage
+.DS_Store
+*.log
+dist
+build
+
+---
+
+# .gitignore
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Production builds
+build/
+dist/
+
+# Environment variables
+.env
+.env.local
+.env.production.local
+.env.test.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+
+# Cache
+.cache/
+
+# Coverage
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
+
+---
+
+# README.md
+# Dash.AI - The AI Assistant for Everything
+
+Dash.AI is a powerful AI-driven workspace automation platform that connects to all your tools to complete entire tasks through natural conversation.
+
+## Features
+
+- 🤖 **AI-Powered Task Management** - Let AI organize your tasks and suggest optimal workflows
+- 📧 **Smart Email Assistant** - AI reads emails, drafts responses, and extracts action items
+- 📅 **Unified Calendar Management** - Schedule across multiple calendars with natural language
+- 🔗 **Cross-Platform Automation** - Create workflows spanning Gmail, Slack, Notion, HubSpot, and more
+- 💬 **Intelligent Chat Interface** - Chat with your data across all platforms
+
+## Supported Integrations
+
+- Gmail (read, send, organize emails)
+- Google Calendar (schedule, manage events)
+- Notion (create pages, update databases)
+- Slack (send messages, manage channels)
+- HubSpot (manage contacts, deals, tasks)
+- Linear (create, update project tasks)
+- Google Drive & Sheets
+- Phone/SMS (via Twilio)
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- Docker & Docker Compose
+- API keys for desired integrations
+
+### Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone <your-repo-url>
+   cd dash-ai
+   ```
+
+2. **Run setup script**
+   ```bash
+   chmod +x scripts/setup.sh
+   ./scripts/setup.sh
+   ```
+
+3. **Configure environment variables**
+   ```bash
+   cp .env.example .env
+   # Update .env with your API keys
+   ```
+
+4. **Start development servers**
+   ```bash
+   npm run dev
+   ```
+
+5. **Visit your app**
+   Open http://localhost:3000
+
+### Production Deployment
+
+1. **Configure production environment**
+   ```bash
+   # Update .env with production values
+   ```
+
+2. **Deploy with Docker**
+   ```bash
+   chmod +x scripts/deploy.sh
+   ./scripts/deploy.sh
+   ```
+
+## Architecture
+
+- **Frontend**: React 18 + TypeScript + Tailwind CSS
+- **Backend**: Node.js + Express + TypeScript
+- **Database**: PostgreSQL with Prisma ORM
+- **Cache**: Redis
+- **AI**: OpenAI GPT-4 + Langchain
+- **Authentication**: JWT with OAuth providers
+- **Real-time**: Socket.io
+
+## Project Structure
+
+```
+dash-ai/
+├── frontend/          # React frontend
+├── backend/           # Node.js backend
+├── shared/            # Shared types and utilities
+├── nginx/             # Nginx configuration
+├── scripts/           # Setup and deployment scripts
+└── docs/             # Documentation
+```
+
+## API Documentation
+
+Visit `/api/docs` when running the server for interactive API documentation.
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Environment Variables
+
+See `.env.example` for all required environment variables.
+
+### Required API Keys
+
+- **OpenAI**: Get from https://platform.openai.com
+- **Google OAuth**: Get from https://console.developers.google.com
+- **Notion**: Get from https://developers.notion.com
+- **Slack**: Get from https://api.slack.com/apps
+- **HubSpot**: Get from https://developers.hubspot.com
+- **Twilio**: Get from https://console.twilio.com
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For support, email support@dash-ai.com or join our Discord server.
+
+---
+
+Built with ❤️ by the Dash.AI team
