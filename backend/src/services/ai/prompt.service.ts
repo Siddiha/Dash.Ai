@@ -1,4 +1,4 @@
-backend / src / services / ai / prompt.service.ts;
+//backend / src / services / ai / prompt.service.ts;
 export class PromptService {
   static buildSystemPrompt(context?: any): string {
     let prompt = `You are Dash.AI, an intelligent assistant that can help users manage their work across multiple platforms. You have access to:
