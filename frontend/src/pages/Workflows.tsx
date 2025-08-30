@@ -12,7 +12,8 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/outline";
-import { api } from "../services/api";
+import { api, apiResponse } from "../services/api";
+import { Workflow as ApiWorkflow } from "../types/workflow";
 import toast from "react-hot-toast";
 // import WorkflowBuilder from "../components/workflows/WorkflowBuilder";
 
@@ -81,11 +82,11 @@ function Workflows() {
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const queryClient = useQueryClient();
 
-  const { data: workflows, isLoading } = useQuery<Workflow[]>({
+  const { data: workflows, isLoading } = useQuery({
     queryKey: ["workflows"],
-    queryFn: async () => {
-      const response = await api.get("/workflows");
-      return response.data;
+    queryFn: async (): Promise<ApiWorkflow[]> => {
+      const response = await api.get<ApiWorkflow[]>("/workflows");
+      return apiResponse(response);
     },
   });
 
@@ -121,9 +122,15 @@ function Workflows() {
   };
 
   const stats = {
-    total: (workflows as Workflow[])?.length || 0,
-    active: (workflows as Workflow[])?.filter((w: Workflow) => w.isActive).length || 0,
-    executions: (workflows as Workflow[])?.reduce((sum: number, w: Workflow) => sum + w.executions.total, 0) || 0,
+    total: (workflows as ApiWorkflow[])?.length || 0,
+    active:
+      (workflows as ApiWorkflow[])?.filter((w: ApiWorkflow) => w.isActive).length ||
+      0,
+    executions:
+      (workflows as ApiWorkflow[])?.reduce(
+        (sum: number, w: ApiWorkflow) => sum + (w.executions?.length || 0),
+        0
+      ) || 0,
   };
 
   if (isLoading) {
@@ -204,115 +211,118 @@ function Workflows() {
               Your Workflows
             </h2>
             <div className="grid gap-6">
-              {(workflows as Workflow[]).map((workflow: Workflow, index: number) => (
-                <motion.div
-                  key={workflow.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-white rounded-lg shadow-lg p-6"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3">
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {workflow.name}
-                        </h3>
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            workflow.isActive
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {workflow.isActive ? "Active" : "Inactive"}
-                        </span>
-                      </div>
-                      <p className="text-gray-600 mt-1">
-                        {workflow.description}
-                      </p>
-
-                      <div className="mt-4 flex items-center space-x-6 text-sm text-gray-500">
-                        <div className="flex items-center space-x-1">
-                          <CheckCircleIcon className="h-4 w-4 text-green-500" />
-                          <span>
-                            {workflow.executions.successful} successful
+              {(workflows as Workflow[]).map(
+                (workflow: Workflow, index: number) => (
+                  <motion.div
+                    key={workflow.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="bg-white rounded-lg shadow-lg p-6"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3">
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {workflow.name}
+                          </h3>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              workflow.isActive
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {workflow.isActive ? "Active" : "Inactive"}
                           </span>
                         </div>
-                        <div className="flex items-center space-x-1">
-                          <ExclamationCircleIcon className="h-4 w-4 text-red-500" />
-                          <span>{workflow.executions.failed} failed</span>
-                        </div>
-                        {workflow.executions.lastRun && (
+                        <p className="text-gray-600 mt-1">
+                          {workflow.description}
+                        </p>
+
+                        <div className="mt-4 flex items-center space-x-6 text-sm text-gray-500">
                           <div className="flex items-center space-x-1">
-                            <ClockIcon className="h-4 w-4" />
+                            <CheckCircleIcon className="h-4 w-4 text-green-500" />
                             <span>
-                              Last run:{" "}
-                              {new Date(
-                                workflow.executions.lastRun
-                              ).toLocaleDateString()}
+                              {workflow.executions.successful} successful
                             </span>
                           </div>
-                        )}
+                          <div className="flex items-center space-x-1">
+                            <ExclamationCircleIcon className="h-4 w-4 text-red-500" />
+                            <span>{workflow.executions.failed} failed</span>
+                          </div>
+                          {workflow.executions.lastRun && (
+                            <div className="flex items-center space-x-1">
+                              <ClockIcon className="h-4 w-4" />
+                              <span>
+                                Last run:{" "}
+                                {new Date(
+                                  workflow.executions.lastRun
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2 ml-4">
+                        <button
+                          onClick={() =>
+                            toggleWorkflowMutation.mutate({
+                              id: workflow.id,
+                              isActive: workflow.isActive,
+                            })
+                          }
+                          className={`p-2 rounded-lg transition-colors ${
+                            workflow.isActive
+                              ? "text-orange-600 hover:bg-orange-50"
+                              : "text-green-600 hover:bg-green-50"
+                          }`}
+                          title={
+                            workflow.isActive
+                              ? "Pause workflow"
+                              : "Start workflow"
+                          }
+                        >
+                          {workflow.isActive ? (
+                            <PauseIcon className="h-5 w-5" />
+                          ) : (
+                            <PlayIcon className="h-5 w-5" />
+                          )}
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            deleteWorkflowMutation.mutate(workflow.id)
+                          }
+                          className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                          title="Delete workflow"
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                        </button>
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-2 ml-4">
-                      <button
-                        onClick={() =>
-                          toggleWorkflowMutation.mutate({
-                            id: workflow.id,
-                            isActive: workflow.isActive,
-                          })
-                        }
-                        className={`p-2 rounded-lg transition-colors ${
-                          workflow.isActive
-                            ? "text-orange-600 hover:bg-orange-50"
-                            : "text-green-600 hover:bg-green-50"
-                        }`}
-                        title={
-                          workflow.isActive
-                            ? "Pause workflow"
-                            : "Start workflow"
-                        }
-                      >
-                        {workflow.isActive ? (
-                          <PauseIcon className="h-5 w-5" />
-                        ) : (
-                          <PlayIcon className="h-5 w-5" />
-                        )}
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          deleteWorkflowMutation.mutate(workflow.id)
-                        }
-                        className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
-                        title="Delete workflow"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                      </button>
+                    {/* Workflow Steps Preview */}
+                    <div className="mt-4 border-t pt-4">
+                      <div className="flex items-center space-x-2 text-sm">
+                        <span className="font-medium text-gray-700">
+                          Trigger:
+                        </span>
+                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          {workflow.trigger.integration} -{" "}
+                          {workflow.trigger.type}
+                        </span>
+                        <span className="text-gray-400">→</span>
+                        <span className="font-medium text-gray-700">
+                          {workflow.steps.length} action
+                          {workflow.steps.length !== 1 ? "s" : ""}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-
-                  {/* Workflow Steps Preview */}
-                  <div className="mt-4 border-t pt-4">
-                    <div className="flex items-center space-x-2 text-sm">
-                      <span className="font-medium text-gray-700">
-                        Trigger:
-                      </span>
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        {workflow.trigger.integration} - {workflow.trigger.type}
-                      </span>
-                      <span className="text-gray-400">→</span>
-                      <span className="font-medium text-gray-700">
-                        {workflow.steps.length} action
-                        {workflow.steps.length !== 1 ? "s" : ""}
-                      </span>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                )
+              )}
             </div>
           </div>
         </>

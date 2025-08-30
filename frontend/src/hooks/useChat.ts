@@ -1,21 +1,9 @@
 // frontend/src/hooks/useChat.ts
 import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "../services/api";
+import { api, apiResponse } from "../services/api";
+import { ChatSession, SendMessageRequest, SendMessageResponse } from "../types/chat";
 import toast from "react-hot-toast";
-
-interface Message {
-  id: string;
-  role: "USER" | "ASSISTANT";
-  content: string;
-  createdAt: string;
-}
-
-interface ChatSession {
-  id: string;
-  title: string;
-  messages: Message[];
-}
 
 export function useChat() {
   const queryClient = useQueryClient();
@@ -24,8 +12,8 @@ export function useChat() {
   const { data: sessions, isLoading: isLoadingSessions } = useQuery({
     queryKey: ["chat-sessions"],
     queryFn: async (): Promise<ChatSession[]> => {
-      const response = await api.get("/chat/sessions");
-      return response.data;
+      const response = await api.get<ChatSession[]>("/chat/sessions");
+      return apiResponse(response);
     },
   });
 
@@ -33,8 +21,8 @@ export function useChat() {
     queryKey: ["chat-session", currentSessionId],
     queryFn: async (): Promise<ChatSession | null> => {
       if (!currentSessionId) return null;
-      const response = await api.get(`/chat/sessions/${currentSessionId}`);
-      return response.data;
+      const response = await api.get<ChatSession>(`/chat/sessions/${currentSessionId}`);
+      return apiResponse(response);
     },
     enabled: !!currentSessionId,
   });
@@ -43,17 +31,14 @@ export function useChat() {
     mutationFn: async ({
       message,
       sessionId,
-    }: {
-      message: string;
-      sessionId?: string;
-    }) => {
-      const response = await api.post("/chat/message", {
+    }: SendMessageRequest): Promise<SendMessageResponse> => {
+      const response = await api.post<SendMessageResponse>("/chat/message", {
         message,
         sessionId,
       });
-      return response.data;
+      return apiResponse(response);
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: SendMessageResponse) => {
       setCurrentSessionId(data.sessionId);
       queryClient.invalidateQueries({ queryKey: ["chat-sessions"] });
       queryClient.invalidateQueries({
@@ -69,7 +54,7 @@ export function useChat() {
     mutationFn: async (sessionId: string) => {
       await api.delete(`/chat/sessions/${sessionId}`);
     },
-    onSuccess: (_, sessionId) => {
+    onSuccess: (_: void, sessionId: string) => {
       queryClient.invalidateQueries({ queryKey: ["chat-sessions"] });
       if (currentSessionId === sessionId) {
         setCurrentSessionId(null);

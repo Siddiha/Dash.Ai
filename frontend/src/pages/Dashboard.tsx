@@ -10,61 +10,22 @@ import {
   TrendingUpIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/outline";
-import { api } from "../services/api";
+import { api, apiResponse } from "../services/api";
+import { DashboardData } from "../types/dashboard";
 import TaskList from "../components/dashboard/TaskList";
 import QuickActions from "../components/dashboard/QuickActions";
 import IntegrationStatus from "../components/dashboard/IntegrationStatus";
-
-interface DashboardData {
-  tasks: {
-    total: number;
-    pending: number;
-    inProgress: number;
-    completed: number;
-    overdue: number;
-  };
-  emails: {
-    unread: number;
-    total: number;
-    recent: Array<{
-      id: string;
-      subject: string;
-      from: string;
-      date: string;
-      snippet: string;
-    }>;
-  };
-  calendar: {
-    upcomingEvents: Array<{
-      id: string;
-      summary: string;
-      start: string;
-      end: string;
-    }>;
-    todayEvents: number;
-  };
-  integrations: {
-    connected: number;
-    total: number;
-    status: Array<{
-      type: string;
-      name: string;
-      isConnected: boolean;
-      lastSync: string;
-    }>;
-  };
-}
 
 function Dashboard() {
   const {
     data: dashboardData,
     isLoading,
     error,
-  } = useQuery<DashboardData>({
+  } = useQuery({
     queryKey: ["dashboard"],
-    queryFn: async () => {
-      const response = await api.get("/dashboard");
-      return response.data;
+    queryFn: async (): Promise<DashboardData> => {
+      const response = await api.get<DashboardData>("/dashboard");
+      return apiResponse(response);
     },
     refetchInterval: 30000, // Refresh every 30 seconds
   });

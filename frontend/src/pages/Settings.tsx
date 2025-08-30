@@ -4,6 +4,14 @@ import { useAuth } from "../contexts/AuthContext";
 import { api } from "../services/api";
 import toast from "react-hot-toast";
 
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  avatar?: string;
+  timezone?: string;
+}
+
 function Settings() {
   const { user, updateUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -110,6 +118,3 @@ function Settings() {
 }
 
 export default Settings;
-
-
-

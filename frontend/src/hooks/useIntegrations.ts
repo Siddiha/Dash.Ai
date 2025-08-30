@@ -1,15 +1,8 @@
 // frontend/src/hooks/useIntegrations.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "../services/api";
+import { api, apiResponse } from "../services/api";
+import { Integration, IntegrationType } from "../types/integrations";
 import toast from "react-hot-toast";
-
-interface Integration {
-  id: string;
-  type: string;
-  name: string;
-  isConnected: boolean;
-  lastSync?: string;
-}
 
 export function useIntegrations() {
   const queryClient = useQueryClient();
@@ -21,17 +14,17 @@ export function useIntegrations() {
   } = useQuery({
     queryKey: ["integrations"],
     queryFn: async (): Promise<Integration[]> => {
-      const response = await api.get("/integrations");
-      return response.data;
+      const response = await api.get<Integration[]>("/integrations");
+      return apiResponse(response);
     },
   });
 
   const connectIntegrationMutation = useMutation({
-    mutationFn: async (type: string) => {
-      const response = await api.post("/integrations/connect", { type });
-      return response.data;
+    mutationFn: async (type: IntegrationType) => {
+      const response = await api.post<{ authUrl?: string; integration: Integration }>("/integrations/connect", { type });
+      return apiResponse(response);
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: { authUrl?: string; integration: Integration }) => {
       if (data.authUrl) {
         window.location.href = data.authUrl;
       } else {

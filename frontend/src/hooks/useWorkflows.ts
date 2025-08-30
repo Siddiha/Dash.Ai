@@ -1,32 +1,8 @@
 // frontend/src/hooks/useWorkflows.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "../services/api";
+import { api, apiResponse } from "../services/api";
+import { Workflow, CreateWorkflowRequest, UpdateWorkflowRequest } from "../types/workflow";
 import toast from "react-hot-toast";
-
-interface Workflow {
-  id: string;
-  name: string;
-  description: string;
-  isActive: boolean;
-  trigger: {
-    type: string;
-    integration: string;
-    conditions: any;
-  };
-  steps: Array<{
-    id: string;
-    integrationId: string;
-    action: string;
-    parameters: any;
-  }>;
-  executions: {
-    total: number;
-    successful: number;
-    failed: number;
-    lastRun?: string;
-  };
-  createdAt: string;
-}
 
 export function useWorkflows() {
   const queryClient = useQueryClient();
@@ -35,18 +11,18 @@ export function useWorkflows() {
     data: workflows,
     isLoading,
     error,
-  } = useQuery<Workflow[]>({
+  } = useQuery({
     queryKey: ["workflows"],
-    queryFn: async () => {
-      const response = await api.get("/workflows");
-      return response.data;
+    queryFn: async (): Promise<Workflow[]> => {
+      const response = await api.get<Workflow[]>("/workflows");
+      return apiResponse(response);
     },
   });
 
   const createWorkflowMutation = useMutation({
-    mutationFn: async (workflowData: Partial<Workflow>) => {
-      const response = await api.post("/workflows", workflowData);
-      return response.data;
+    mutationFn: async (workflowData: CreateWorkflowRequest) => {
+      const response = await api.post<Workflow>("/workflows", workflowData);
+      return apiResponse(response);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workflows"] });
@@ -63,10 +39,10 @@ export function useWorkflows() {
       data,
     }: {
       id: string;
-      data: Partial<Workflow>;
+      data: UpdateWorkflowRequest;
     }) => {
-      const response = await api.patch(`/workflows/${id}`, data);
-      return response.data;
+      const response = await api.patch<Workflow>(`/workflows/${id}`, data);
+      return apiResponse(response);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workflows"] });

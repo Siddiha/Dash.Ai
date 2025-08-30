@@ -9,7 +9,8 @@ import {
   PlusIcon,
   RefreshIcon,
 } from "@heroicons/react/outline";
-import { api } from "../services/api";
+import { api, apiResponse } from "../services/api";
+import { Integration as ApiIntegration, IntegrationType } from "../types/integrations";
 import toast from "react-hot-toast";
 
 interface Integration {
@@ -125,11 +126,11 @@ function Integrations() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const queryClient = useQueryClient();
 
-  const { data: userIntegrations, isLoading } = useQuery<Integration[]>({
+  const { data: userIntegrations, isLoading } = useQuery({
     queryKey: ["integrations"],
-    queryFn: async () => {
-      const response = await api.get("/integrations");
-      return response.data;
+    queryFn: async (): Promise<ApiIntegration[]> => {
+      const response = await api.get<ApiIntegration[]>("/integrations");
+      return apiResponse(response);
     },
   });
 
@@ -183,8 +184,8 @@ function Integrations() {
 
   // Merge user integrations with configs
   const integrations = Object.values(integrationConfigs).map((config) => {
-    const userIntegration = (userIntegrations as Integration[])?.find(
-      (ui: Integration) => ui.type === config.type
+    const userIntegration = (userIntegrations as ApiIntegration[])?.find(
+      (ui: ApiIntegration) => ui.type === config.type
     );
     return {
       ...config,
