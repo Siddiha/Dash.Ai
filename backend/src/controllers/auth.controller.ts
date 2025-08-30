@@ -4,8 +4,10 @@
 // backend/src/controllers/auth.controller.ts
 import { Request, Response } from "express";
 import { google } from "googleapis";
+import * as jwt from "jsonwebtoken";
 import { AuthService } from "../services/auth.service";
 import { OAUTH_CONFIG } from "../config/oauth";
+import { prisma } from "../config/database";
 
 export class AuthController {
   static async googleAuth(req: Request, res: Response) {
