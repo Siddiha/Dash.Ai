@@ -1,7 +1,7 @@
 // backend/src/sockets/workflow.socket.ts
 import { Server, Socket } from "socket.io";
 
-export function setupWorkflowSockets(io: Server) {
+export function setupWorkflowSocket(io: Server) {
   const workflowNamespace = io.of("/workflows");
 
   workflowNamespace.on("connection", (socket: Socket) => {

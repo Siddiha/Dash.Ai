@@ -51,7 +51,7 @@ export class ChatController {
 
       // Generate AI response
       const openai = new OpenAIService();
-      const conversationHistory = session.messages.map((msg) => ({
+      const conversationHistory = session.messages.map((msg: any) => ({
         role: msg.role.toLowerCase(),
         content: msg.content,
       }));
@@ -110,7 +110,7 @@ export class ChatController {
         orderBy: { createdAt: "desc" },
         take: 5,
       });
-      context.recentTasks = tasks.map((t) => ({
+      context.recentTasks = tasks.map((t: any) => ({
         title: t.title,
         priority: t.priority,
       }));

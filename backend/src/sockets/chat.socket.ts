@@ -1,7 +1,7 @@
 // backend/src/sockets/chat.socket.ts
 import { Server, Socket } from "socket.io";
 
-export function setupChatSockets(io: Server) {
+export function setupChatSocket(io: Server) {
   const chatNamespace = io.of("/chat");
 
   chatNamespace.on("connection", (socket: Socket) => {

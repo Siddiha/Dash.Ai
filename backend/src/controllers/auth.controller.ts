@@ -1,6 +1,3 @@
-
-
-
 // backend/src/controllers/auth.controller.ts
 import { Request, Response } from "express";
 import { google } from "googleapis";
@@ -52,7 +49,7 @@ export class AuthController {
         user = await AuthService.createUser(
           data.email!,
           data.name!,
-          data.picture
+          data.picture || undefined
         );
       }
 
@@ -160,9 +157,9 @@ export class AuthController {
       }
 
       const token = AuthService.generateToken(user.id);
-      res.json({ token });
+      return res.json({ token });
     } catch (error) {
-      res.status(401).json({ error: "Invalid refresh token" });
+      return res.status(401).json({ error: "Invalid refresh token" });
     }
   }
 
@@ -171,7 +168,3 @@ export class AuthController {
     res.json({ message: "Logged out successfully" });
   }
 }
-
-
-
-

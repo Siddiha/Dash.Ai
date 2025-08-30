@@ -1,7 +1,7 @@
 // backend/src/sockets/notifications.socket.ts
 import { Server, Socket } from "socket.io";
 
-export function setupNotificationSockets(io: Server) {
+export function setupNotificationSocket(io: Server) {
   const notificationNamespace = io.of("/notifications");
 
   notificationNamespace.on("connection", (socket: Socket) => {
