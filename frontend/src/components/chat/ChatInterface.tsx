@@ -75,7 +75,10 @@ function ChatInterface({ open, setOpen }: ChatInterfaceProps) {
         sessionId: currentSessionId,
       });
 
-      const { message: aiMessage, sessionId } = response.data;
+      const { message: aiMessage, sessionId } = response.data as {
+        message: Message;
+        sessionId: string;
+      };
 
       setCurrentSessionId(sessionId);
       setMessages((prev) => [...prev, aiMessage]);

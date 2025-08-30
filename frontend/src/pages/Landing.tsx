@@ -119,7 +119,7 @@ function Landing() {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      const { authUrl } = await authService.googleAuth();
+      const { authUrl } = await authService.googleAuth() as { authUrl: string };
       window.location.href = authUrl;
     } catch (error) {
       toast.error('Failed to start authentication');
@@ -134,7 +134,7 @@ function Landing() {
     
     if (code) {
       authService.googleCallback(code)
-        .then(({ token, user }) => {
+        .then(({ token, user }: { token: string; user: any }) => {
           login(token, user);
           navigate('/dashboard');
           toast.success('Successfully logged in!');

@@ -72,28 +72,28 @@ function Dashboard() {
   const stats = [
     {
       name: "Pending Tasks",
-      value: dashboardData?.tasks.pending || 0,
+      value: (dashboardData as DashboardData)?.tasks?.pending || 0,
       icon: ClockIcon,
       color: "text-yellow-600",
       bgColor: "bg-yellow-100",
     },
     {
       name: "Unread Emails",
-      value: dashboardData?.emails.unread || 0,
+      value: (dashboardData as DashboardData)?.emails?.unread || 0,
       icon: MailIcon,
       color: "text-blue-600",
       bgColor: "bg-blue-100",
     },
     {
       name: "Today's Events",
-      value: dashboardData?.calendar.todayEvents || 0,
+      value: (dashboardData as DashboardData)?.calendar?.todayEvents || 0,
       icon: CalendarIcon,
       color: "text-green-600",
       bgColor: "bg-green-100",
     },
     {
       name: "Completed Tasks",
-      value: dashboardData?.tasks.completed || 0,
+      value: (dashboardData as DashboardData)?.tasks?.completed || 0,
       icon: CheckCircleIcon,
       color: "text-purple-600",
       bgColor: "bg-purple-100",
@@ -173,13 +173,15 @@ function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column - Tasks and Quick Actions */}
         <div className="lg:col-span-2 space-y-8">
-          <TaskList tasks={dashboardData?.tasks} />
+          <TaskList tasks={(dashboardData as DashboardData)?.tasks} />
           <QuickActions />
         </div>
 
         {/* Right Column - Integrations and Recent Activity */}
         <div className="space-y-8">
-          <IntegrationStatus integrations={dashboardData?.integrations} />
+          <IntegrationStatus
+            integrations={(dashboardData as DashboardData)?.integrations}
+          />
 
           {/* Recent Emails */}
           <div className="bg-white shadow rounded-lg">
@@ -189,29 +191,32 @@ function Dashboard() {
               </h3>
             </div>
             <div className="divide-y divide-gray-200">
-              {dashboardData?.emails.recent?.slice(0, 5).map((email) => (
-                <div key={email.id} className="px-6 py-4 hover:bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {email.subject}
-                      </p>
-                      <p className="text-sm text-gray-500 truncate">
-                        {email.from}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {email.snippet}
-                      </p>
-                    </div>
-                    <div className="ml-2 flex-shrink-0 text-xs text-gray-400">
-                      {new Date(email.date).toLocaleDateString()}
+              {(dashboardData as DashboardData)?.emails?.recent
+                ?.slice(0, 5)
+                .map((email: any) => (
+                  <div key={email.id} className="px-6 py-4 hover:bg-gray-50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {email.subject}
+                        </p>
+                        <p className="text-sm text-gray-500 truncate">
+                          {email.from}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {email.snippet}
+                        </p>
+                      </div>
+                      <div className="ml-2 flex-shrink-0 text-xs text-gray-400">
+                        {new Date(email.date).toLocaleDateString()}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
-            {(!dashboardData?.emails.recent ||
-              dashboardData.emails.recent.length === 0) && (
+            {(!(dashboardData as DashboardData)?.emails?.recent ||
+              (dashboardData as DashboardData)?.emails?.recent?.length ===
+                0) && (
               <div className="px-6 py-4 text-center text-gray-500">
                 No recent emails
               </div>
@@ -226,9 +231,9 @@ function Dashboard() {
               </h3>
             </div>
             <div className="divide-y divide-gray-200">
-              {dashboardData?.calendar.upcomingEvents
+              {(dashboardData as DashboardData)?.calendar?.upcomingEvents
                 ?.slice(0, 5)
-                .map((event) => (
+                .map((event: any) => (
                   <div key={event.id} className="px-6 py-4 hover:bg-gray-50">
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
@@ -244,8 +249,9 @@ function Dashboard() {
                   </div>
                 ))}
             </div>
-            {(!dashboardData?.calendar.upcomingEvents ||
-              dashboardData.calendar.upcomingEvents.length === 0) && (
+            {(!(dashboardData as DashboardData)?.calendar?.upcomingEvents ||
+              (dashboardData as DashboardData)?.calendar?.upcomingEvents
+                ?.length === 0) && (
               <div className="px-6 py-4 text-center text-gray-500">
                 No upcoming events
               </div>
@@ -258,4 +264,3 @@ function Dashboard() {
 }
 
 export default Dashboard;
-

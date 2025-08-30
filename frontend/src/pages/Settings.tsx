@@ -1,4 +1,4 @@
-/ frontend/src/pages/Settings.tsx
+// frontend/src/pages/Settings.tsx
 import React, { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../services/api";
@@ -10,7 +10,7 @@ function Settings() {
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
-    timezone: user?.timezone || "UTC",
+    timezone: (user as any)?.timezone || "UTC",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,7 +19,7 @@ function Settings() {
 
     try {
       const response = await api.patch("/auth/profile", formData);
-      updateUser(response.data);
+      updateUser(response.data as User);
       toast.success("Profile updated successfully!");
     } catch (error) {
       toast.error("Failed to update profile");

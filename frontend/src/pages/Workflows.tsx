@@ -14,7 +14,7 @@ import {
 } from "@heroicons/react/outline";
 import { api } from "../services/api";
 import toast from "react-hot-toast";
-import WorkflowBuilder from "../components/workflows/WorkflowBuilder";
+// import WorkflowBuilder from "../components/workflows/WorkflowBuilder";
 
 interface Workflow {
   id: string;
@@ -121,9 +121,9 @@ function Workflows() {
   };
 
   const stats = {
-    total: workflows?.length || 0,
-    active: workflows?.filter((w) => w.isActive).length || 0,
-    executions: workflows?.reduce((sum, w) => sum + w.executions.total, 0) || 0,
+    total: (workflows as Workflow[])?.length || 0,
+    active: (workflows as Workflow[])?.filter((w: Workflow) => w.isActive).length || 0,
+    executions: (workflows as Workflow[])?.reduce((sum: number, w: Workflow) => sum + w.executions.total, 0) || 0,
   };
 
   if (isLoading) {
@@ -196,7 +196,7 @@ function Workflows() {
         </div>
       </div>
 
-      {workflows && workflows.length > 0 ? (
+      {(workflows as Workflow[]) && (workflows as Workflow[]).length > 0 ? (
         <>
           {/* Existing Workflows */}
           <div>
@@ -204,7 +204,7 @@ function Workflows() {
               Your Workflows
             </h2>
             <div className="grid gap-6">
-              {workflows.map((workflow, index) => (
+              {(workflows as Workflow[]).map((workflow: Workflow, index: number) => (
                 <motion.div
                   key={workflow.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -396,7 +396,7 @@ function Workflows() {
       </div>
 
       {/* Workflow Builder Modal */}
-      {showBuilder && (
+      {/* {showBuilder && (
         <WorkflowBuilder
           open={showBuilder}
           onClose={() => {
@@ -410,12 +410,9 @@ function Workflows() {
             setSelectedTemplate(null);
           }}
         />
-      )}
+      )} */}
     </div>
   );
 }
 
 export default Workflows;
-
-
-

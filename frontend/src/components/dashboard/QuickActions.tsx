@@ -54,3 +54,5 @@ function QuickActions() {
     </div>
   );
 }
+
+export default QuickActions;

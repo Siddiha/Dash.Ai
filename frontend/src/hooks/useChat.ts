@@ -1,10 +1,10 @@
-//frontend / src / hooks / useChat.ts;
+// frontend/src/hooks/useChat.ts
 import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../services/api";
 import toast from "react-hot-toast";
 
-interface ChatMessage {
+interface Message {
   id: string;
   role: "USER" | "ASSISTANT";
   content: string;
@@ -14,34 +14,30 @@ interface ChatMessage {
 interface ChatSession {
   id: string;
   title: string;
-  messages: ChatMessage[];
-  createdAt: string;
+  messages: Message[];
 }
 
 export function useChat() {
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
-  const { data: sessions, isLoading: isLoadingSessions } = useQuery<
-    ChatSession[]
-  >({
+  const { data: sessions, isLoading: isLoadingSessions } = useQuery({
     queryKey: ["chat-sessions"],
-    queryFn: async () => {
+    queryFn: async (): Promise<ChatSession[]> => {
       const response = await api.get("/chat/sessions");
       return response.data;
     },
   });
 
-  const { data: currentSession, isLoading: isLoadingSession } =
-    useQuery<ChatSession>({
-      queryKey: ["chat-session", currentSessionId],
-      queryFn: async () => {
-        if (!currentSessionId) return null;
-        const response = await api.get(`/chat/sessions/${currentSessionId}`);
-        return response.data;
-      },
-      enabled: !!currentSessionId,
-    });
+  const { data: currentSession, isLoading: isLoadingSession } = useQuery({
+    queryKey: ["chat-session", currentSessionId],
+    queryFn: async (): Promise<ChatSession | null> => {
+      if (!currentSessionId) return null;
+      const response = await api.get(`/chat/sessions/${currentSessionId}`);
+      return response.data;
+    },
+    enabled: !!currentSessionId,
+  });
 
   const sendMessageMutation = useMutation({
     mutationFn: async ({
@@ -51,10 +47,13 @@ export function useChat() {
       message: string;
       sessionId?: string;
     }) => {
-      const response = await api.post("/chat/message", { message, sessionId });
+      const response = await api.post("/chat/message", {
+        message,
+        sessionId,
+      });
       return response.data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       setCurrentSessionId(data.sessionId);
       queryClient.invalidateQueries({ queryKey: ["chat-sessions"] });
       queryClient.invalidateQueries({
@@ -70,15 +69,15 @@ export function useChat() {
     mutationFn: async (sessionId: string) => {
       await api.delete(`/chat/sessions/${sessionId}`);
     },
-    onSuccess: () => {
+    onSuccess: (_, sessionId) => {
       queryClient.invalidateQueries({ queryKey: ["chat-sessions"] });
-      if (currentSessionId === arguments[0]) {
+      if (currentSessionId === sessionId) {
         setCurrentSessionId(null);
       }
       toast.success("Chat session deleted");
     },
     onError: () => {
-      toast.error("Failed to delete session");
+      toast.error("Failed to delete chat session");
     },
   });
 
@@ -96,12 +95,12 @@ export function useChat() {
     sessions,
     currentSession,
     currentSessionId,
+    setCurrentSessionId,
     isLoadingSessions,
     isLoadingSession,
-    isSending: sendMessageMutation.isPending,
     sendMessage,
-    setCurrentSessionId,
     deleteSession: deleteSessionMutation.mutate,
-    isDeleting: deleteSessionMutation.isPending,
+    isSending: sendMessageMutation.isLoading,
+    isDeleting: deleteSessionMutation.isLoading,
   };
 }

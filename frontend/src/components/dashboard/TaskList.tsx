@@ -129,6 +129,3 @@ function TaskList({ tasks }: TaskListProps) {
 export default TaskList;
 
 
-export default QuickActions;
-
-

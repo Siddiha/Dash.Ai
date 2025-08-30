@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       authService
         .getMe()
         .then((userData) => {
-          setUser(userData);
+          setUser(userData as User);
         })
         .catch(() => {
           localStorage.removeItem("token");

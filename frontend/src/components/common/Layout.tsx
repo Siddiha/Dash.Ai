@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
-import ChatInterface from "./chat/ChatInterface";
+import ChatInterface from "../chat/ChatInterface";
 
 interface LayoutProps {
   children: React.ReactNode;

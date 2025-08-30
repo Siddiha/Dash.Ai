@@ -1,4 +1,4 @@
-// frontend/crs / hooks / useWorkflows.ts;
+// frontend/src/hooks/useWorkflows.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../services/api";
 import toast from "react-hot-toast";
@@ -8,14 +8,24 @@ interface Workflow {
   name: string;
   description: string;
   isActive: boolean;
-  trigger: any;
-  steps: any[];
+  trigger: {
+    type: string;
+    integration: string;
+    conditions: any;
+  };
+  steps: Array<{
+    id: string;
+    integrationId: string;
+    action: string;
+    parameters: any;
+  }>;
   executions: {
     total: number;
     successful: number;
     failed: number;
     lastRun?: string;
   };
+  createdAt: string;
 }
 
 export function useWorkflows() {
@@ -33,8 +43,8 @@ export function useWorkflows() {
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (workflowData: any) => {
+  const createWorkflowMutation = useMutation({
+    mutationFn: async (workflowData: Partial<Workflow>) => {
       const response = await api.post("/workflows", workflowData);
       return response.data;
     },
@@ -47,8 +57,14 @@ export function useWorkflows() {
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+  const updateWorkflowMutation = useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<Workflow>;
+    }) => {
       const response = await api.patch(`/workflows/${id}`, data);
       return response.data;
     },
@@ -61,7 +77,7 @@ export function useWorkflows() {
     },
   });
 
-  const deleteMutation = useMutation({
+  const deleteWorkflowMutation = useMutation({
     mutationFn: async (id: string) => {
       await api.delete(`/workflows/${id}`);
     },
@@ -74,31 +90,15 @@ export function useWorkflows() {
     },
   });
 
-  const executeMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await api.post(`/workflows/${id}/execute`);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workflows"] });
-      toast.success("Workflow executed successfully!");
-    },
-    onError: () => {
-      toast.error("Failed to execute workflow");
-    },
-  });
-
   return {
     workflows,
     isLoading,
     error,
-    createWorkflow: createMutation.mutate,
-    updateWorkflow: updateMutation.mutate,
-    deleteWorkflow: deleteMutation.mutate,
-    executeWorkflow: executeMutation.mutate,
-    isCreating: createMutation.isPending,
-    isUpdating: updateMutation.isPending,
-    isDeleting: deleteMutation.isPending,
-    isExecuting: executeMutation.isPending,
+    createWorkflow: createWorkflowMutation.mutate,
+    updateWorkflow: updateWorkflowMutation.mutate,
+    deleteWorkflow: deleteWorkflowMutation.mutate,
+    isCreating: createWorkflowMutation.isLoading,
+    isUpdating: updateWorkflowMutation.isLoading,
+    isDeleting: deleteWorkflowMutation.isLoading,
   };
 }

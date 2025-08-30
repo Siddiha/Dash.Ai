@@ -141,8 +141,8 @@ function Integrations() {
       return response.data;
     },
     onSuccess: (data) => {
-      if (data.authUrl) {
-        window.location.href = data.authUrl;
+      if ((data as any).authUrl) {
+        window.location.href = (data as any).authUrl;
       } else {
         queryClient.invalidateQueries({ queryKey: ["integrations"] });
         toast.success("Integration connected successfully!");
@@ -183,8 +183,8 @@ function Integrations() {
 
   // Merge user integrations with configs
   const integrations = Object.values(integrationConfigs).map((config) => {
-    const userIntegration = userIntegrations?.find(
-      (ui) => ui.type === config.type
+    const userIntegration = (userIntegrations as Integration[])?.find(
+      (ui: Integration) => ui.type === config.type
     );
     return {
       ...config,

@@ -1,13 +1,7 @@
-
-
-
-
-}
-
 // frontend/src/components/Header.tsx
 import React from "react";
 import { MenuIcon, ChatIcon, BellIcon } from "@heroicons/react/outline";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface HeaderProps {
   setSidebarOpen: (open: boolean) => void;

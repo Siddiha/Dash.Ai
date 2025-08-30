@@ -18,20 +18,20 @@ export function useIntegrations() {
     data: integrations,
     isLoading,
     error,
-  } = useQuery<Integration[]>({
+  } = useQuery({
     queryKey: ["integrations"],
-    queryFn: async () => {
+    queryFn: async (): Promise<Integration[]> => {
       const response = await api.get("/integrations");
       return response.data;
     },
   });
 
-  const connectMutation = useMutation({
+  const connectIntegrationMutation = useMutation({
     mutationFn: async (type: string) => {
-      const response = await api.post(`/integrations/${type}/connect`);
+      const response = await api.post("/integrations/connect", { type });
       return response.data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       if (data.authUrl) {
         window.location.href = data.authUrl;
       } else {
@@ -39,14 +39,12 @@ export function useIntegrations() {
         toast.success("Integration connected successfully!");
       }
     },
-    onError: (error: any) => {
-      toast.error(
-        error.response?.data?.error || "Failed to connect integration"
-      );
+    onError: () => {
+      toast.error("Failed to connect integration");
     },
   });
 
-  const disconnectMutation = useMutation({
+  const disconnectIntegrationMutation = useMutation({
     mutationFn: async (id: string) => {
       await api.delete(`/integrations/${id}`);
     },
@@ -59,28 +57,13 @@ export function useIntegrations() {
     },
   });
 
-  const syncMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await api.post(`/integrations/${id}/sync`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["integrations"] });
-      toast.success("Integration synced successfully!");
-    },
-    onError: () => {
-      toast.error("Failed to sync integration");
-    },
-  });
-
   return {
     integrations,
     isLoading,
     error,
-    connectIntegration: connectMutation.mutate,
-    disconnectIntegration: disconnectMutation.mutate,
-    syncIntegration: syncMutation.mutate,
-    isConnecting: connectMutation.isPending,
-    isDisconnecting: disconnectMutation.isPending,
-    isSyncing: syncMutation.isPending,
+    connectIntegration: connectIntegrationMutation.mutate,
+    disconnectIntegration: disconnectIntegrationMutation.mutate,
+    isConnecting: connectIntegrationMutation.isLoading,
+    isDisconnecting: disconnectIntegrationMutation.isLoading,
   };
 }
