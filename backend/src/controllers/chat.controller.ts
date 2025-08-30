@@ -293,6 +293,29 @@ export class ChatController {
       res.status(500).json({ error: "Failed to get chat sessions" });
     }
   }
+
+  static async deleteChatSession(req: any, res: Response) {
+    try {
+      const userId = req.user.id;
+      const { sessionId } = req.params;
+
+      const session = await prisma.chatSession.findFirst({
+        where: { id: sessionId, userId },
+      });
+
+      if (!session) {
+        return res.status(404).json({ error: "Chat session not found" });
+      }
+
+      await prisma.chatSession.delete({
+        where: { id: sessionId },
+      });
+
+      res.json({ message: "Chat session deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete chat session" });
+    }
+  }
 }
 
 
