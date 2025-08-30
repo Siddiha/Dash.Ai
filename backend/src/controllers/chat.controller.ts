@@ -85,13 +85,13 @@ export class ChatController {
         },
       });
 
-      res.json({
+      return res.json({
         message: aiMessage,
         sessionId: session.id,
       });
     } catch (error) {
       console.error("Chat error:", error);
-      res.status(500).json({ error: "Failed to process message" });
+      return res.status(500).json({ error: "Failed to process message" });
     }
   }
 
@@ -267,9 +267,9 @@ export class ChatController {
         },
       });
 
-      res.json(session);
+      return res.json(session);
     } catch (error) {
-      res.status(500).json({ error: "Failed to get chat history" });
+      return res.status(500).json({ error: "Failed to get chat history" });
     }
   }
 
@@ -288,9 +288,9 @@ export class ChatController {
         },
       });
 
-      res.json(sessions);
+      return res.json(sessions);
     } catch (error) {
-      res.status(500).json({ error: "Failed to get chat sessions" });
+      return res.status(500).json({ error: "Failed to get chat sessions" });
     }
   }
 
@@ -311,9 +311,9 @@ export class ChatController {
         where: { id: sessionId },
       });
 
-      res.json({ message: "Chat session deleted successfully" });
+      return res.json({ message: "Chat session deleted successfully" });
     } catch (error) {
-      res.status(500).json({ error: "Failed to delete chat session" });
+      return res.status(500).json({ error: "Failed to delete chat session" });
     }
   }
 }

@@ -90,9 +90,9 @@ export class IntegrationController {
       const service = new IntegrationService(integration);
       await service.testConnection();
 
-      res.json({ message: "Integration synced successfully" });
+      return res.json({ message: "Integration synced successfully" });
     } catch (error) {
-      res.status(500).json({ error: "Failed to sync integration" });
+      return res.status(500).json({ error: "Failed to sync integration" });
     }
   }
 
@@ -112,9 +112,9 @@ export class IntegrationController {
       const service = new IntegrationService(integration);
       const data = await service.getRecentData();
 
-      res.json(data);
+      return res.json(data);
     } catch (error) {
-      res.status(500).json({ error: "Failed to get integration data" });
+      return res.status(500).json({ error: "Failed to get integration data" });
     }
   }
 }

@@ -25,22 +25,22 @@ export class WorkflowController {
         },
       });
 
-      const workflowsWithStats = workflows.map((workflow) => ({
+      const workflowsWithStats = workflows.map((workflow: any) => ({
         ...workflow,
         executions: {
           total: workflow.executions.length,
           successful: workflow.executions.filter(
-            (e) => e.status === "COMPLETED"
+            (e: any) => e.status === "COMPLETED"
           ).length,
-          failed: workflow.executions.filter((e) => e.status === "FAILED")
+          failed: workflow.executions.filter((e: any) => e.status === "FAILED")
             .length,
           lastRun: workflow.executions[0]?.startedAt,
         },
       }));
 
-      res.json(workflowsWithStats);
+      return res.json(workflowsWithStats);
     } catch (error) {
-      res.status(500).json({ error: "Failed to get workflows" });
+      return res.status(500).json({ error: "Failed to get workflows" });
     }
   }
 
@@ -99,9 +99,9 @@ export class WorkflowController {
         return res.status(404).json({ error: "Workflow not found" });
       }
 
-      res.json(workflow);
+      return res.json(workflow);
     } catch (error) {
-      res.status(500).json({ error: "Failed to get workflow" });
+      return res.status(500).json({ error: "Failed to get workflow" });
     }
   }
 
@@ -120,9 +120,9 @@ export class WorkflowController {
         return res.status(404).json({ error: "Workflow not found" });
       }
 
-      res.json({ message: "Workflow updated successfully" });
+      return res.json({ message: "Workflow updated successfully" });
     } catch (error) {
-      res.status(500).json({ error: "Failed to update workflow" });
+      return res.status(500).json({ error: "Failed to update workflow" });
     }
   }
 
@@ -139,9 +139,9 @@ export class WorkflowController {
         return res.status(404).json({ error: "Workflow not found" });
       }
 
-      res.json({ message: "Workflow deleted successfully" });
+      return res.json({ message: "Workflow deleted successfully" });
     } catch (error) {
-      res.status(500).json({ error: "Failed to delete workflow" });
+      return res.status(500).json({ error: "Failed to delete workflow" });
     }
   }
 
@@ -166,9 +166,9 @@ export class WorkflowController {
       const workflowService = new WorkflowService();
       const execution = await workflowService.executeWorkflow(workflow, {});
 
-      res.json(execution);
+      return res.json(execution);
     } catch (error) {
-      res.status(500).json({ error: "Failed to execute workflow" });
+      return res.status(500).json({ error: "Failed to execute workflow" });
     }
   }
 
@@ -191,13 +191,11 @@ export class WorkflowController {
         take: 50,
       });
 
-      res.json(executions);
+      return res.json(executions);
     } catch (error) {
-      res.status(500).json({ error: "Failed to get workflow executions" });
+      return res
+        .status(500)
+        .json({ error: "Failed to get workflow executions" });
     }
   }
 }
-
-
-
-

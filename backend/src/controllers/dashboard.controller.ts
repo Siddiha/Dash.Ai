@@ -1,4 +1,3 @@
-
 // backend/src/controllers/dashboard.controller.ts
 import { Request, Response } from "express";
 import { prisma } from "../config/database";
@@ -17,12 +16,14 @@ export class DashboardController {
       });
 
       const taskStats = {
-        total: tasks.reduce((sum, t) => sum + t._count.status, 0),
-        pending: tasks.find((t) => t.status === "PENDING")?._count.status || 0,
+        total: tasks.reduce((sum: number, t: any) => sum + t._count.status, 0),
+        pending:
+          tasks.find((t: any) => t.status === "PENDING")?._count.status || 0,
         inProgress:
-          tasks.find((t) => t.status === "IN_PROGRESS")?._count.status || 0,
+          tasks.find((t: any) => t.status === "IN_PROGRESS")?._count.status ||
+          0,
         completed:
-          tasks.find((t) => t.status === "COMPLETED")?._count.status || 0,
+          tasks.find((t: any) => t.status === "COMPLETED")?._count.status || 0,
         overdue: 0, // Calculate overdue tasks
       };
 
@@ -34,7 +35,7 @@ export class DashboardController {
       const integrationStats = {
         connected: integrations.length,
         total: 8, // Total available integrations
-        status: integrations.map((i) => ({
+        status: integrations.map((i: any) => ({
           type: i.type,
           name: i.name,
           isConnected: i.isConnected,
@@ -47,7 +48,9 @@ export class DashboardController {
       let calendarData = { upcomingEvents: [], todayEvents: 0 };
 
       try {
-        const gmailIntegration = integrations.find((i) => i.type === "GMAIL");
+        const gmailIntegration = integrations.find(
+          (i: any) => i.type === "GMAIL"
+        );
         if (gmailIntegration) {
           const gmailService = new IntegrationService(gmailIntegration);
           const emails = await gmailService.getRecentData();
@@ -59,7 +62,7 @@ export class DashboardController {
         }
 
         const calendarIntegration = integrations.find(
-          (i) => i.type === "GOOGLE_CALENDAR"
+          (i: any) => i.type === "GOOGLE_CALENDAR"
         );
         if (calendarIntegration) {
           const calendarService = new IntegrationService(calendarIntegration);
@@ -83,10 +86,10 @@ export class DashboardController {
         integrations: integrationStats,
       };
 
-      res.json(dashboardData);
+      return res.json(dashboardData);
     } catch (error) {
       console.error("Dashboard error:", error);
-      res.status(500).json({ error: "Failed to get dashboard data" });
+      return res.status(500).json({ error: "Failed to get dashboard data" });
     }
   }
 
@@ -119,16 +122,14 @@ export class DashboardController {
         _count: { startedAt: true },
       });
 
-      res.json({
+      return res.json({
         taskTrends,
         workflowTrends,
         timeframe,
         period: `${days} days`,
       });
     } catch (error) {
-      res.status(500).json({ error: "Failed to get analytics data" });
+      return res.status(500).json({ error: "Failed to get analytics data" });
     }
   }
 }
-
-
