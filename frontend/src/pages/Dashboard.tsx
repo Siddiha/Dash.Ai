@@ -35,28 +35,28 @@ function Dashboard() {
   const stats = [
     {
       name: "Pending Tasks",
-      value: (dashboardData as DashboardData)?.tasks?.pending || 0,
+      value: dashboardData?.tasks?.pending || 0,
       icon: ClockIcon,
       color: "text-yellow-600",
       bgColor: "bg-yellow-100",
     },
     {
       name: "Unread Emails",
-      value: (dashboardData as DashboardData)?.emails?.unread || 0,
+      value: dashboardData?.emails?.unread || 0,
       icon: ChartBarIcon,
       color: "text-blue-600",
       bgColor: "bg-blue-100",
     },
     {
       name: "Today's Events",
-      value: (dashboardData as DashboardData)?.calendar?.todayEvents || 0,
+      value: dashboardData?.calendar?.todayEvents || 0,
       icon: UserGroupIcon,
       color: "text-green-600",
       bgColor: "bg-green-100",
     },
     {
       name: "Completed Tasks",
-      value: (dashboardData as DashboardData)?.tasks?.completed || 0,
+      value: dashboardData?.tasks?.completed || 0,
       icon: CheckCircleIcon,
       color: "text-purple-600",
       bgColor: "bg-purple-100",
@@ -136,15 +136,13 @@ function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column - Tasks and Quick Actions */}
         <div className="lg:col-span-2 space-y-8">
-          <TaskList tasks={(dashboardData as DashboardData)?.tasks} />
+          <TaskList tasks={dashboardData?.tasks} />
           <QuickActions />
         </div>
 
         {/* Right Column - Integrations and Recent Activity */}
         <div className="space-y-8">
-          <IntegrationStatus
-            integrations={(dashboardData as DashboardData)?.integrations}
-          />
+          <IntegrationStatus integrations={dashboardData?.integrations} />
 
           {/* Recent Emails */}
           <div className="bg-white shadow rounded-lg">

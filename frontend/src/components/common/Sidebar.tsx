@@ -13,6 +13,7 @@ import {
   RectangleStackIcon as CollectionIcon,
   UserIcon,
   ArrowRightOnRectangleIcon as LogoutIcon,
+  XMarkIcon as XIcon,
 } from "@heroicons/react/24/outline";
 
 const navigation = [

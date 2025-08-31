@@ -1,5 +1,5 @@
 // frontend/src/components/chat/ChatInput.tsx
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 
 interface ChatInputProps {

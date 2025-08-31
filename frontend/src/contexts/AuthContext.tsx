@@ -13,6 +13,8 @@ interface User {
   email: string;
   name: string;
   avatar?: string;
+  plan?: "free" | "pro" | "enterprise";
+  permissions?: string[];
   integrations?: Array<{
     id: string;
     type: string;

@@ -5,6 +5,8 @@ import {
   PlusIcon,
   CogIcon,
   ChatBubbleLeftRightIcon as ChatIcon,
+  EnvelopeIcon as MailIcon,
+  CalendarIcon,
 } from "@heroicons/react/24/outline";
 
 function QuickActions() {

@@ -3,7 +3,6 @@
 
 // frontend/src/services/api.ts
 import axios from "axios";
-import type { AxiosResponse } from "axios";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_URL || "http://localhost:5000/api";
@@ -35,7 +34,7 @@ api.interceptors.response.use(
 );
 
 // Type-safe API response helper
-export const apiResponse = <T>(response: AxiosResponse<T>): T => {
+export const apiResponse = <T>(response: any): T => {
   return response.data;
 };
 

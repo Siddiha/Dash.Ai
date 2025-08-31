@@ -4,10 +4,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   CheckCircleIcon,
-  PuzzleIcon,
+  PuzzlePieceIcon as PuzzleIcon,
   ExclamationTriangleIcon,
   PlusIcon,
-  XIcon,
+  XMarkIcon as XIcon,
   ArrowPathIcon as RefreshIcon,
 } from "@heroicons/react/24/outline";
 import { api, apiResponse } from "../services/api";
@@ -345,32 +345,32 @@ function Integrations() {
               <div className="flex space-x-2">
                 {integration.isConnected ? (
                   <>
-                    <button
-                      onClick={() => syncMutation.mutate(integration.id)}
-                      disabled={syncMutation.isPending}
-                      className="flex-1 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg font-medium hover:bg-blue-100 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
-                    >
-                      <RefreshIcon
-                        className={`h-4 w-4 ${
-                          syncMutation.isPending ? "animate-spin" : ""
-                        }`}
-                      />
-                      <span>Sync</span>
-                    </button>
-                    <button
-                      onClick={() => disconnectMutation.mutate(integration.id)}
-                      disabled={disconnectMutation.isPending}
-                      className="flex-1 bg-red-50 text-red-700 px-4 py-2 rounded-lg font-medium hover:bg-red-100 transition-colors disabled:opacity-50"
-                    >
-                      Disconnect
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => connectMutation.mutate(integration.type)}
-                    disabled={connectMutation.isPending}
-                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all flex items-center justify-center space-x-2"
-                  >
+                                         <button
+                       onClick={() => syncMutation.mutate(integration.id)}
+                       disabled={syncMutation.isLoading}
+                       className="flex-1 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg font-medium hover:bg-blue-100 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                     >
+                       <RefreshIcon
+                         className={`h-4 w-4 ${
+                           syncMutation.isLoading ? "animate-spin" : ""
+                         }`}
+                       />
+                       <span>Sync</span>
+                     </button>
+                     <button
+                       onClick={() => disconnectMutation.mutate(integration.id)}
+                       disabled={disconnectMutation.isLoading}
+                       className="flex-1 bg-red-50 text-red-700 px-4 py-2 rounded-lg font-medium hover:bg-red-100 transition-colors disabled:opacity-50"
+                     >
+                       Disconnect
+                     </button>
+                   </>
+                 ) : (
+                   <button
+                     onClick={() => connectMutation.mutate(integration.type)}
+                     disabled={connectMutation.isLoading}
+                     className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all flex items-center justify-center space-x-2"
+                   >
                     <PlusIcon className="h-4 w-4" />
                     <span>Connect</span>
                   </button>
