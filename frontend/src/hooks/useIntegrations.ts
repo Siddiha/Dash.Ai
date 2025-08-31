@@ -19,9 +19,16 @@ export function useIntegrations() {
     },
   });
 
-  const connectIntegrationMutation = useMutation({
+  const connectIntegrationMutation = useMutation<
+    { authUrl?: string; integration: Integration },
+    Error,
+    IntegrationType
+  >({
     mutationFn: async (type: IntegrationType) => {
-      const response = await api.post<{ authUrl?: string; integration: Integration }>("/integrations/connect", { type });
+      const response = await api.post<{
+        authUrl?: string;
+        integration: Integration;
+      }>("/integrations/connect", { type });
       return apiResponse(response);
     },
     onSuccess: (data: { authUrl?: string; integration: Integration }) => {
@@ -37,7 +44,7 @@ export function useIntegrations() {
     },
   });
 
-  const disconnectIntegrationMutation = useMutation({
+  const disconnectIntegrationMutation = useMutation<void, Error, string>({
     mutationFn: async (id: string) => {
       await api.delete(`/integrations/${id}`);
     },

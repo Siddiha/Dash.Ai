@@ -19,6 +19,7 @@ export interface Integration {
   accessToken?: string;
   refreshToken?: string;
   expiresAt?: string;
+  lastSync?: string;
   metadata?: any;
   createdAt: string;
   updatedAt: string;

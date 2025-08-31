@@ -13,34 +13,9 @@ import {
   ExclamationCircleIcon,
 } from "@heroicons/react/outline";
 import { api, apiResponse } from "../services/api";
-import { Workflow as ApiWorkflow } from "../types/workflow";
+import { Workflow } from "../types/workflow";
 import toast from "react-hot-toast";
 // import WorkflowBuilder from "../components/workflows/WorkflowBuilder";
-
-interface Workflow {
-  id: string;
-  name: string;
-  description: string;
-  isActive: boolean;
-  trigger: {
-    type: string;
-    integration: string;
-    conditions: any;
-  };
-  steps: Array<{
-    id: string;
-    integrationId: string;
-    action: string;
-    parameters: any;
-  }>;
-  executions: {
-    total: number;
-    successful: number;
-    failed: number;
-    lastRun?: string;
-  };
-  createdAt: string;
-}
 
 const workflowTemplates = [
   {
@@ -84,8 +59,8 @@ function Workflows() {
 
   const { data: workflows, isLoading } = useQuery({
     queryKey: ["workflows"],
-    queryFn: async (): Promise<ApiWorkflow[]> => {
-      const response = await api.get<ApiWorkflow[]>("/workflows");
+    queryFn: async (): Promise<Workflow[]> => {
+      const response = await api.get<Workflow[]>("/workflows");
       return apiResponse(response);
     },
   });
@@ -122,13 +97,13 @@ function Workflows() {
   };
 
   const stats = {
-    total: (workflows as ApiWorkflow[])?.length || 0,
+    total: (workflows as Workflow[])?.length || 0,
     active:
-      (workflows as ApiWorkflow[])?.filter((w: ApiWorkflow) => w.isActive).length ||
+      (workflows as Workflow[])?.filter((w: Workflow) => w.isActive).length ||
       0,
     executions:
-      (workflows as ApiWorkflow[])?.reduce(
-        (sum: number, w: ApiWorkflow) => sum + (w.executions?.length || 0),
+      (workflows as Workflow[])?.reduce(
+        (sum: number, w: Workflow) => sum + (w.executions?.length || 0),
         0
       ) || 0,
   };
@@ -203,7 +178,7 @@ function Workflows() {
         </div>
       </div>
 
-      {(workflows as Workflow[]) && (workflows as Workflow[]).length > 0 ? (
+      {workflows && workflows.length > 0 ? (
         <>
           {/* Existing Workflows */}
           <div>
@@ -211,7 +186,7 @@ function Workflows() {
               Your Workflows
             </h2>
             <div className="grid gap-6">
-              {(workflows as Workflow[]).map(
+              {workflows.map(
                 (workflow: Workflow, index: number) => (
                   <motion.div
                     key={workflow.id}
@@ -244,20 +219,20 @@ function Workflows() {
                           <div className="flex items-center space-x-1">
                             <CheckCircleIcon className="h-4 w-4 text-green-500" />
                             <span>
-                              {workflow.executions.successful} successful
+                              {workflow.executions.filter(e => e.status === 'COMPLETED').length} successful
                             </span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <ExclamationCircleIcon className="h-4 w-4 text-red-500" />
-                            <span>{workflow.executions.failed} failed</span>
+                            <span>{workflow.executions.filter(e => e.status === 'FAILED').length} failed</span>
                           </div>
-                          {workflow.executions.lastRun && (
+                          {workflow.executions.length > 0 && (
                             <div className="flex items-center space-x-1">
                               <ClockIcon className="h-4 w-4" />
                               <span>
                                 Last run:{" "}
                                 {new Date(
-                                  workflow.executions.lastRun
+                                  workflow.executions[workflow.executions.length - 1]?.startedAt || ''
                                 ).toLocaleDateString()}
                               </span>
                             </div>
