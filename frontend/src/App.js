@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Toaster } from 'react-hot-toast';
-import io from 'socket.io-client';
 
 // Components
 import Login from './components/Auth/Login';
@@ -17,7 +16,7 @@ import { useAuth } from './hooks/useAuth';
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 
-import './App.css';
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -95,7 +94,7 @@ function App() {
                   error: {
                     style: {
                       background: '#7F1D1D',
-                      border: '1px solid '#EF4444',
+                      border: '1px solid #EF4444',
                     },
                   },
                 }}

@@ -4,7 +4,7 @@ import {
   PaperAirplaneIcon, 
   MicrophoneIcon, 
   PaperClipIcon,
-  SparklesIcon,
+  StarIcon,
   CalendarIcon,
   EnvelopeIcon,
   DocumentIcon
@@ -215,7 +215,7 @@ const ChatInterface = () => {
       <div className="bg-gray-800 border-b border-gray-700 p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-            <SparklesIcon className="w-5 h-5 text-white" />
+                            <StarIcon className="w-5 h-5 text-white" />
           </div>
           <div>
             <h1 className="text-lg font-semibold text-white">AI Assistant</h1>
@@ -236,7 +236,7 @@ const ChatInterface = () => {
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
-              <SparklesIcon className="w-8 h-8 text-white" />
+                              <StarIcon className="w-8 h-8 text-white" />
             </div>
             <h2 className="text-xl font-semibold text-white mb-2">
               Good evening, {user?.name || 'there'}!

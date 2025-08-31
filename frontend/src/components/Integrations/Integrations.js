@@ -3,10 +3,9 @@ import { motion } from 'framer-motion';
 import { 
   PlusIcon, 
   CheckCircleIcon, 
-  XCircleIcon,
+  ExclamationCircleIcon,
   ExclamationTriangleIcon,
   Cog6ToothIcon,
-  TrashIcon,
   ArrowPathIcon
 } from '@heroicons/react/24/outline';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
@@ -181,7 +180,7 @@ const Integrations = () => {
       case 'connecting':
         return <ArrowPathIcon className="w-5 h-5 text-yellow-500 animate-spin" />;
       default:
-        return <XCircleIcon className="w-5 h-5 text-gray-400" />;
+        return <ExclamationCircleIcon className="w-5 h-5 text-gray-400" />;
     }
   };
 
@@ -239,7 +238,7 @@ const Integrations = () => {
                   disabled={isConnecting}
                   className="text-xs bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white px-3 py-1 rounded transition-colors flex items-center space-x-1"
                 >
-                  <TrashIcon className="w-3 h-3" />
+                                          <ExclamationCircleIcon className="w-3 h-3" />
                   <span>Disconnect</span>
                 </button>
               </>

@@ -4,9 +4,6 @@ const socketIo = require('socket.io');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const mongoose = require('mongoose');
-const redis = require('redis');
-require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const chatRoutes = require('./routes/chat');
@@ -22,14 +19,6 @@ const io = socketIo(server, {
     methods: ["GET", "POST"]
   }
 });
-
-// Redis client
-const redisClient = redis.createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379'
-});
-
-redisClient.on('error', (err) => console.log('Redis Client Error', err));
-redisClient.connect();
 
 // Middleware
 app.use(helmet());
@@ -49,14 +38,6 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/ai-assistant', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.error('MongoDB connection error:', err));
-
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
@@ -69,7 +50,7 @@ app.get('/health', (req, res) => {
     status: 'OK', 
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    memory: process.memoryUsage()
+    message: 'Backend is running!'
   });
 });
 
@@ -84,45 +65,20 @@ io.on('connection', (socket) => {
   socket.on('chat_message', async (data) => {
     try {
       const { message, conversationId } = data;
+      console.log('Received message:', message);
       
-      // Store message in database
-      const chatMessage = new (require('./models/Message'))({
-        userId: socket.userId,
-        conversationId,
-        content: message,
-        type: 'user'
-      });
-      await chatMessage.save();
+      // Mock AI response
+      const aiResponse = {
+        message: `AI Response to: "${message}"`,
+        timestamp: new Date().toISOString(),
+        metadata: {}
+      };
       
-      // Process message with AI
-      const aiService = require('./services/ai/openaiService');
-      const aiResponse = await aiService.processMessage(message, socket.userId);
-      
-      // Store AI response
-      const aiMessage = new (require('./models/Message'))({
-        userId: socket.userId,
-        conversationId,
-        content: aiResponse.content,
-        type: 'assistant',
-        metadata: aiResponse.metadata
-      });
-      await aiMessage.save();
-      
-      // Send response back to user
-      socket.emit('ai_response', {
-        message: aiResponse.content,
-        metadata: aiResponse.metadata,
-        timestamp: new Date()
-      });
-      
-      // If it's a scheduling request, trigger scheduling service
-      if (aiResponse.metadata?.intent === 'schedule') {
-        const schedulingService = require('./services/scheduling/schedulingService');
-        await schedulingService.handleSchedulingRequest(socket.userId, aiResponse.metadata);
-      }
+      // Send response back to the same socket
+      socket.emit('ai_response', aiResponse);
       
     } catch (error) {
-      console.error('Chat message error:', error);
+      console.error('Error processing message:', error);
       socket.emit('error', { message: 'Failed to process message' });
     }
   });
@@ -132,25 +88,12 @@ io.on('connection', (socket) => {
   });
 });
 
-// Error handling
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ 
-    error: 'Something went wrong!',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
-});
-
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ error: 'Route not found' });
-});
-
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🚀 Backend server running on port ${PORT}`);
+  console.log(`📱 Frontend should connect to: http://localhost:3000`);
+  console.log(`🔗 Backend API: http://localhost:${PORT}`);
+  console.log(`✅ Health check: http://localhost:${PORT}/health`);
+  console.log(`🔐 Test login with: fathimasiddika62@gmail.com / password123`);
 });
-
-module.exports = { app, server, io, redisClient };
