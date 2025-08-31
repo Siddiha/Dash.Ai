@@ -1,6 +1,6 @@
 // frontend/src/components/Header.tsx
-import React from "react";
-import { MenuIcon, ChatIcon, BellIcon } from "@heroicons/react/outline";
+import React, { useState } from "react";
+import { Bars3Icon as MenuIcon, ChatBubbleLeftRightIcon as ChatIcon, BellIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "../../contexts/AuthContext";
 
 interface HeaderProps {

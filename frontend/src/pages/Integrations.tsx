@@ -3,12 +3,13 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
-  PuzzleIcon,
   CheckCircleIcon,
+  PuzzleIcon,
   ExclamationTriangleIcon,
   PlusIcon,
-  RefreshIcon,
-} from "@heroicons/react/outline";
+  XIcon,
+  ArrowPathIcon as RefreshIcon,
+} from "@heroicons/react/24/outline";
 import { api, apiResponse } from "../services/api";
 import { Integration as ApiIntegration, IntegrationType } from "../types/integrations";
 import toast from "react-hot-toast";

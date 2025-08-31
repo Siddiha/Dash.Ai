@@ -2,14 +2,12 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  ChatIcon,
-  CalendarIcon,
-  MailIcon,
-  CollectionIcon,
-  SparklesIcon,
+  CheckCircleIcon,
+  BoltIcon,
+  ShieldCheckIcon,
+  CogIcon,
   ArrowRightIcon,
-  CheckIcon,
-} from "@heroicons/react/outline";
+} from "@heroicons/react/24/outline";
 import { authService } from "../services/auth";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -31,31 +29,31 @@ const features = [
     title: "AI-Powered Task Management",
     description:
       "Let AI automatically organize your tasks, prioritize your schedule, and suggest optimal workflows.",
-    icon: SparklesIcon,
+    icon: BoltIcon,
   },
   {
     title: "Smart Email Assistant",
     description:
       "AI reads your emails, drafts responses, schedules meetings, and extracts action items automatically.",
-    icon: MailIcon,
+    icon: CogIcon,
   },
   {
     title: "Unified Calendar Management",
     description:
       "Coordinate across multiple calendars, find optimal meeting times, and schedule with natural language.",
-    icon: CalendarIcon,
+    icon: ShieldCheckIcon,
   },
   {
     title: "Cross-Platform Automation",
     description:
       "Create workflows that span multiple apps. When X happens in Gmail, do Y in Slack and Z in Notion.",
-    icon: CollectionIcon,
+    icon: CheckCircleIcon,
   },
   {
     title: "Intelligent Chat Interface",
     description:
       "Chat with your data across all platforms. Ask questions, give commands, get insights instantly.",
-    icon: ChatIcon,
+    icon: CogIcon,
   },
 ];
 
@@ -380,7 +378,7 @@ function Landing() {
                       key={featureIndex}
                       className="flex items-center space-x-3"
                     >
-                      <CheckIcon className="w-5 h-5 text-green-400 flex-shrink-0" />
+                      <CheckCircleIcon className="w-5 h-5 text-green-400 flex-shrink-0" />
                       <span className="text-gray-300">{feature}</span>
                     </li>
                   ))}

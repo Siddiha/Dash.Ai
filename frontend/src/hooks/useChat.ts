@@ -27,7 +27,11 @@ export function useChat() {
     enabled: !!currentSessionId,
   });
 
-  const sendMessageMutation = useMutation({
+  const sendMessageMutation = useMutation<
+    SendMessageResponse,
+    Error,
+    SendMessageRequest
+  >({
     mutationFn: async ({
       message,
       sessionId,
@@ -50,7 +54,11 @@ export function useChat() {
     },
   });
 
-  const deleteSessionMutation = useMutation({
+  const deleteSessionMutation = useMutation<
+    void,
+    Error,
+    string
+  >({
     mutationFn: async (sessionId: string) => {
       await api.delete(`/chat/sessions/${sessionId}`);
     },

@@ -3,10 +3,12 @@ import React, { useState, useRef, useEffect } from "react";
 import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import {
-  XIcon,
   PaperAirplaneIcon,
+  TrashIcon,
+  PlusIcon,
+  XMarkIcon as XIcon,
   SparklesIcon,
-} from "@heroicons/react/outline";
+} from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "../../services/api";
 import ReactMarkdown from "react-markdown";

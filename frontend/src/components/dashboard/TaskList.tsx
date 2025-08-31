@@ -4,8 +4,8 @@ import React from "react";
 import {
   CheckCircleIcon,
   ClockIcon,
-  ExclamationCircleIcon,
-} from "@heroicons/react/outline";
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
 
 interface Task {
   id: string;
@@ -71,7 +71,7 @@ function TaskList({ tasks }: TaskListProps) {
       case "IN_PROGRESS":
         return <ClockIcon className="h-5 w-5 text-blue-500" />;
       case "PENDING":
-        return <ExclamationCircleIcon className="h-5 w-5 text-yellow-500" />;
+        return <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" />;
       default:
         return <ClockIcon className="h-5 w-5 text-gray-400" />;
     }

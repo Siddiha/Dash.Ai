@@ -2,11 +2,10 @@
 // frontend/src/components/dashboard/QuickActions.tsx
 import React from "react";
 import {
-  MailIcon,
-  CalendarIcon,
   PlusIcon,
-  ChatIcon,
-} from "@heroicons/react/outline";
+  CogIcon,
+  ChatBubbleLeftRightIcon as ChatIcon,
+} from "@heroicons/react/24/outline";
 
 function QuickActions() {
   const actions = [

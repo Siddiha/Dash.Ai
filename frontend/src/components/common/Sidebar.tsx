@@ -6,12 +6,14 @@ import React, { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { Link, useLocation } from "react-router-dom";
 import {
-  XIcon,
   HomeIcon,
-  PuzzleIcon,
+  PuzzlePieceIcon as PuzzleIcon,
   CogIcon,
-  CollectionIcon,
-} from "@heroicons/react/outline";
+  ChatBubbleLeftRightIcon as ChatIcon,
+  RectangleStackIcon as CollectionIcon,
+  UserIcon,
+  ArrowRightOnRectangleIcon as LogoutIcon,
+} from "@heroicons/react/24/outline";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: HomeIcon },

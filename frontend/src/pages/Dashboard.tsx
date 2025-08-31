@@ -3,13 +3,15 @@ import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
-  MailIcon,
-  CalendarIcon,
-  CheckCircleIcon,
+  ChartBarIcon,
   ClockIcon,
-  TrendingUpIcon,
-  ExclamationCircleIcon,
-} from "@heroicons/react/outline";
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  UserGroupIcon,
+  CogIcon,
+} from "@heroicons/react/24/outline";
 import { api, apiResponse } from "../services/api";
 import { DashboardData } from "../types/dashboard";
 import TaskList from "../components/dashboard/TaskList";
@@ -41,14 +43,14 @@ function Dashboard() {
     {
       name: "Unread Emails",
       value: (dashboardData as DashboardData)?.emails?.unread || 0,
-      icon: MailIcon,
+      icon: ChartBarIcon,
       color: "text-blue-600",
       bgColor: "bg-blue-100",
     },
     {
       name: "Today's Events",
       value: (dashboardData as DashboardData)?.calendar?.todayEvents || 0,
-      icon: CalendarIcon,
+      icon: UserGroupIcon,
       color: "text-green-600",
       bgColor: "bg-green-100",
     },
@@ -72,7 +74,7 @@ function Dashboard() {
   if (error) {
     return (
       <div className="text-center py-12">
-        <ExclamationCircleIcon className="mx-auto h-12 w-12 text-red-400" />
+        <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-red-400" />
         <h3 className="mt-2 text-sm font-medium text-gray-900">
           Error loading dashboard
         </h3>
@@ -205,7 +207,7 @@ function Dashboard() {
                           {new Date(event.start).toLocaleString()}
                         </p>
                       </div>
-                      <CalendarIcon className="h-5 w-5 text-gray-400" />
+                      <UserGroupIcon className="h-5 w-5 text-gray-400" />
                     </div>
                   </div>
                 ))}
