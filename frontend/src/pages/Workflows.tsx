@@ -65,7 +65,11 @@ function Workflows() {
     },
   });
 
-  const toggleWorkflowMutation = useMutation({
+  const toggleWorkflowMutation = useMutation<
+    void,
+    Error,
+    { id: string; isActive: boolean }
+  >({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
       await api.patch(`/workflows/${id}`, { isActive: !isActive });
     },
@@ -78,7 +82,11 @@ function Workflows() {
     },
   });
 
-  const deleteWorkflowMutation = useMutation({
+  const deleteWorkflowMutation = useMutation<
+    void,
+    Error,
+    string
+  >({
     mutationFn: async (id: string) => {
       await api.delete(`/workflows/${id}`);
     },
@@ -97,12 +105,12 @@ function Workflows() {
   };
 
   const stats = {
-    total: (workflows as Workflow[])?.length || 0,
+    total: workflows?.length || 0,
     active:
-      (workflows as Workflow[])?.filter((w: Workflow) => w.isActive).length ||
+      workflows?.filter((w: Workflow) => w.isActive).length ||
       0,
     executions:
-      (workflows as Workflow[])?.reduce(
+      workflows?.reduce(
         (sum: number, w: Workflow) => sum + (w.executions?.length || 0),
         0
       ) || 0,

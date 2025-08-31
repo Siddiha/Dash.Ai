@@ -19,7 +19,11 @@ export function useWorkflows() {
     },
   });
 
-  const createWorkflowMutation = useMutation({
+  const createWorkflowMutation = useMutation<
+    Workflow,
+    Error,
+    CreateWorkflowRequest
+  >({
     mutationFn: async (workflowData: CreateWorkflowRequest) => {
       const response = await api.post<Workflow>("/workflows", workflowData);
       return apiResponse(response);
@@ -33,7 +37,11 @@ export function useWorkflows() {
     },
   });
 
-  const updateWorkflowMutation = useMutation({
+  const updateWorkflowMutation = useMutation<
+    Workflow,
+    Error,
+    { id: string; data: UpdateWorkflowRequest }
+  >({
     mutationFn: async ({
       id,
       data,
@@ -53,7 +61,11 @@ export function useWorkflows() {
     },
   });
 
-  const deleteWorkflowMutation = useMutation({
+  const deleteWorkflowMutation = useMutation<
+    void,
+    Error,
+    string
+  >({
     mutationFn: async (id: string) => {
       await api.delete(`/workflows/${id}`);
     },

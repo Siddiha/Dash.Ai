@@ -20,6 +20,7 @@ export interface Integration {
   refreshToken?: string;
   expiresAt?: string;
   lastSync?: string;
+  category: string;
   metadata?: any;
   createdAt: string;
   updatedAt: string;
