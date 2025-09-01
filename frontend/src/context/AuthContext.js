@@ -41,17 +41,36 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = async (credentials) => {
+  const login = async (email, password) => {
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(credentials)
+      body: JSON.stringify({ email, password })
     });
 
     if (!response.ok) {
       throw new Error('Login failed');
+    }
+
+    const data = await response.json();
+    localStorage.setItem('token', data.token);
+    setUser(data.user);
+    return data;
+  };
+
+  const register = async (name, email, password) => {
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name, email, password })
+    });
+
+    if (!response.ok) {
+      throw new Error('Registration failed');
     }
 
     const data = await response.json();
@@ -68,6 +87,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     login,
+    register,
     logout,
     loading
   };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Toaster } from 'react-hot-toast';
@@ -13,8 +13,6 @@ import Header from './components/Layout/Header';
 // Context
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
-
-import './App.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,6 +60,10 @@ function AppContent() {
               <Route path="/" element={<Navigate to="/chat" replace />} />
               <Route path="/chat" element={<ChatInterface />} />
               <Route path="/integrations" element={<Integrations />} />
+              <Route path="/calendar" element={<div className="p-6 text-center text-gray-400">Calendar feature coming soon...</div>} />
+              <Route path="/documents" element={<div className="p-6 text-center text-gray-400">Documents feature coming soon...</div>} />
+              <Route path="/analytics" element={<div className="p-6 text-center text-gray-400">Analytics feature coming soon...</div>} />
+              <Route path="/settings" element={<div className="p-6 text-center text-gray-400">Settings feature coming soon...</div>} />
             </Routes>
           </main>
         </div>

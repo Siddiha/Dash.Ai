@@ -10,7 +10,7 @@ import {
   DocumentIcon
 } from '@heroicons/react/24/outline';
 import { useSocket } from '../../context/SocketContext';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const ChatInterface = () => {
@@ -99,6 +99,11 @@ const ChatInterface = () => {
         }
       });
       
+      if (!response.ok) {
+        console.log('No chat history available yet');
+        return;
+      }
+      
       if (response.ok) {
         const history = await response.json();
         setMessages(history.messages || []);
@@ -146,6 +151,8 @@ const ChatInterface = () => {
       if (response.ok) {
         const { suggestions } = await response.json();
         setSuggestions(suggestions || []);
+      } else {
+        console.log('No suggestions available yet');
       }
     } catch (error) {
       console.error('Failed to generate suggestions:', error);
