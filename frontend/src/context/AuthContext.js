@@ -1,6 +1,122 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+// src/context/AuthContext.js
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import toast from 'react-hot-toast';
 
-export const AuthContext = createContext();
+const AuthContext = createContext();
+
+const initialState = {
+  user: null,
+  loading: true,
+  error: null
+};
+
+const authReducer = (state, action) => {
+  switch (action.type) {
+    case 'SET_LOADING':
+      return { ...state, loading: action.payload };
+    case 'SET_USER':
+      return { ...state, user: action.payload, loading: false, error: null };
+    case 'SET_ERROR':
+      return { ...state, error: action.payload, loading: false };
+    case 'LOGOUT':
+      return { ...state, user: null, loading: false, error: null };
+    default:
+      return state;
+  }
+};
+
+export const AuthProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(authReducer, initialState);
+
+  useEffect(() => {
+    // Check for existing token on app start
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('userData');
+    
+    if (token && userData) {
+      try {
+        const user = JSON.parse(userData);
+        dispatch({ type: 'SET_USER', payload: user });
+      } catch (error) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('userData');
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    } else {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, []);
+
+  const login = async (email, password) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    
+    try {
+      // For demo purposes, simulate successful login
+      // Replace this with actual API call
+      const mockUser = {
+        id: '1',
+        name: email.split('@')[0],
+        email: email
+      };
+      
+      localStorage.setItem('token', 'demo-token');
+      localStorage.setItem('userData', JSON.stringify(mockUser));
+      
+      dispatch({ type: 'SET_USER', payload: mockUser });
+      toast.success('Welcome to Slashy!');
+      
+      return { success: true };
+    } catch (error) {
+      dispatch({ type: 'SET_ERROR', payload: error.message });
+      toast.error('Login failed. Please try again.');
+      return { success: false, error: error.message };
+    }
+  };
+
+  const register = async (name, email, password) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    
+    try {
+      // For demo purposes, simulate successful registration
+      // Replace this with actual API call
+      const mockUser = {
+        id: '1',
+        name: name,
+        email: email
+      };
+      
+      localStorage.setItem('token', 'demo-token');
+      localStorage.setItem('userData', JSON.stringify(mockUser));
+      
+      dispatch({ type: 'SET_USER', payload: mockUser });
+      toast.success('Account created successfully!');
+      
+      return { success: true };
+    } catch (error) {
+      dispatch({ type: 'SET_ERROR', payload: error.message });
+      toast.error('Registration failed. Please try again.');
+      return { success: false, error: error.message };
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userData');
+    dispatch({ type: 'LOGOUT' });
+    toast.success('Logged out successfully');
+  };
+
+  return (
+    <AuthContext.Provider value={{
+      ...state,
+      login,
+      register,
+      logout
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -8,93 +124,4 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
-
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Verify token and get user data
-      fetch('/api/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.user) {
-          setUser(data.user);
-        }
-      })
-      .catch(() => {
-        localStorage.removeItem('token');
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
-  const login = async (email, password) => {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email, password })
-    });
-
-    if (!response.ok) {
-      throw new Error('Login failed');
-    }
-
-    const data = await response.json();
-    localStorage.setItem('token', data.token);
-    setUser(data.user);
-    return data;
-  };
-
-  const register = async (name, email, password) => {
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ name, email, password })
-    });
-
-    if (!response.ok) {
-      throw new Error('Registration failed');
-    }
-
-    const data = await response.json();
-    localStorage.setItem('token', data.token);
-    setUser(data.user);
-    return data;
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-  };
-
-  const value = {
-    user,
-    login,
-    register,
-    logout,
-    loading
-  };
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
 };
