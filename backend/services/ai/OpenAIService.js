@@ -8,70 +8,43 @@ class OpenAIService {
       apiKey: process.env.OPENAI_API_KEY,
     });
     
-    this.systemPrompt = `You are an advanced AI assistant that can help users manage their productivity tools and schedule. 
+    this.systemPrompt = `You are an advanced AI assistant named "AI Assistant" that helps users manage their productivity and daily tasks.
 
-You have access to various integrations including:
-- Gmail (read, compose, send emails)
-- Google Calendar (create, update, delete events)
-- Google Drive (access, organize files)
-- Slack (send messages, read channels)
-- Notion (create, update pages)
-- And more...
+You can help with:
+- 📅 Scheduling meetings and managing calendar
+- 📧 Managing emails (Gmail integration)
+- 📁 Organizing files and documents
+- 💬 Communication across platforms (Slack, Teams)
+- 📝 Creating and managing notes (Notion)
+- 🎯 Task management and productivity
 
-Key capabilities:
-1. **Smart Scheduling**: Analyze calendars to find optimal meeting times
-2. **Email Management**: Draft, send, and organize emails
-3. **Task Management**: Create and track tasks across platforms
-4. **Document Management**: Help organize and find documents
-5. **Communication**: Send messages across different platforms
+Always be helpful, friendly, and proactive. When users ask for something that requires an integration (like checking calendar or sending email), let them know which integration needs to be connected.
 
-Response format:
-- Always be helpful and proactive
-- If a task requires integration access, specify which integration is needed
-- For scheduling requests, provide specific time suggestions
-- Include actionable steps when possible
-- Ask clarifying questions when needed
-
-Intent classification:
-- schedule: Calendar/meeting related requests
-- email: Email composition, sending, reading
-- task: Task creation, management
-- document: File management, search
-- communication: Messaging across platforms
-- general: General conversation or questions`;
+Respond naturally and conversationally. Keep responses concise but helpful.`;
   }
 
   async processMessage(message, userId) {
     try {
-      // Get user context and integrations
-      const user = await User.findById(userId).populate('integrations');
-      const userIntegrations = user.integrations || [];
+      // Get user context
+      const user = await User.findById(userId).lean();
+      const integrations = await Integration.find({ userId, status: 'connected' }).lean();
       
-      // Build context about available integrations
-      const integrationContext = userIntegrations.map(integration => 
-        `${integration.platform}: ${integration.status === 'connected' ? 'Available' : 'Not connected'}`
-      ).join('\n');
+      const connectedServices = integrations.map(i => i.platform).join(', ') || 'none';
       
-      const contextPrompt = `${this.systemPrompt}
-
-User's connected integrations:
-${integrationContext}
-
-User's recent context: ${await this.getUserContext(userId)}`;
-
       const completion = await this.openai.chat.completions.create({
-        model: "gpt-4",
+        model: "gpt-3.5-turbo",
         messages: [
-          { role: "system", content: contextPrompt },
+          { 
+            role: "system", 
+            content: `${this.systemPrompt}\n\nUser's connected integrations: ${connectedServices}\nUser's name: ${user.name}`
+          },
           { role: "user", content: message }
         ],
         temperature: 0.7,
-        max_tokens: 1000,
+        max_tokens: 500,
       });
 
       const response = completion.choices[0].message.content;
-      
-      // Analyze intent and extract metadata
       const metadata = await this.analyzeIntent(message, response);
       
       return {
@@ -82,7 +55,7 @@ User's recent context: ${await this.getUserContext(userId)}`;
     } catch (error) {
       console.error('OpenAI processing error:', error);
       return {
-        content: "I'm sorry, I'm having trouble processing your request right now. Please try again in a moment.",
+        content: "I'm having trouble processing your request right now. Please try again in a moment.",
         metadata: { intent: 'error', error: error.message }
       };
     }
@@ -90,118 +63,101 @@ User's recent context: ${await this.getUserContext(userId)}`;
 
   async analyzeIntent(userMessage, aiResponse) {
     try {
-      const intentAnalysis = await this.openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "system",
-            content: `Analyze the user message and AI response to determine the primary intent and extract relevant metadata.
-
-Return JSON only with this structure:
-{
-  "intent": "schedule|email|task|document|communication|general",
-  "confidence": 0.0-1.0,
-  "entities": {
-    "datetime": "extracted date/time if any",
-    "people": ["list of people mentioned"],
-    "platforms": ["platforms to interact with"],
-    "action": "specific action to take"
-  },
-  "requiresIntegration": true/false,
-  "integrationNeeded": "platform name if required"
-}`
-          },
-          {
-            role: "user",
-            content: `User: ${userMessage}\n\nAI Response: ${aiResponse}`
-          }
-        ],
-        temperature: 0.1,
-        max_tokens: 300,
-      });
-
-      const analysis = JSON.parse(intentAnalysis.choices[0].message.content);
-      return analysis;
+      // Simple intent analysis based on keywords
+      const message = userMessage.toLowerCase();
+      
+      let intent = 'general';
+      let requiresIntegration = false;
+      let integrationNeeded = null;
+      
+      if (message.includes('schedule') || message.includes('meeting') || message.includes('calendar')) {
+        intent = 'schedule';
+        requiresIntegration = true;
+        integrationNeeded = 'google';
+      } else if (message.includes('email') || message.includes('gmail')) {
+        intent = 'email';
+        requiresIntegration = true;
+        integrationNeeded = 'google';
+      } else if (message.includes('document') || message.includes('file') || message.includes('drive')) {
+        intent = 'document';
+        requiresIntegration = true;
+        integrationNeeded = 'google';
+      } else if (message.includes('slack') || message.includes('message')) {
+        intent = 'communication';
+        requiresIntegration = true;
+        integrationNeeded = 'slack';
+      }
+      
+      return {
+        intent,
+        confidence: 0.8,
+        requiresIntegration,
+        integrationNeeded,
+        entities: this.extractEntities(userMessage)
+      };
     } catch (error) {
       console.error('Intent analysis error:', error);
       return {
         intent: 'general',
         confidence: 0.5,
-        entities: {},
         requiresIntegration: false
       };
     }
   }
 
-  async getUserContext(userId) {
-    try {
-      // Get recent messages, calendar events, etc. for context
-      const Message = require('../../models/Message');
-      const recentMessages = await Message.find({ userId })
-        .sort({ createdAt: -1 })
-        .limit(5)
-        .select('content type createdAt');
-      
-      const context = recentMessages
-        .map(msg => `${msg.type}: ${msg.content.substring(0, 100)}`)
-        .join('\n');
-      
-      return context;
-    } catch (error) {
-      console.error('Error getting user context:', error);
-      return '';
-    }
+  extractEntities(message) {
+    // Simple entity extraction
+    const entities = {};
+    
+    // Extract dates (very basic)
+    const dateRegex = /(tomorrow|today|next week|monday|tuesday|wednesday|thursday|friday)/gi;
+    const dates = message.match(dateRegex);
+    if (dates) entities.dates = dates;
+    
+    // Extract times
+    const timeRegex = /(\d{1,2}:\d{2}|\d{1,2}\s?(am|pm))/gi;
+    const times = message.match(timeRegex);
+    if (times) entities.times = times;
+    
+    // Extract emails
+    const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
+    const emails = message.match(emailRegex);
+    if (emails) entities.emails = emails;
+    
+    return entities;
   }
 
   async generateSmartSuggestions(userId, currentMessage) {
     try {
-      const user = await User.findById(userId).populate('integrations');
+      const suggestions = [
+        "Schedule a meeting for next week",
+        "Check my calendar for today",
+        "Draft an email to my team",
+        "Create a new document",
+        "Find my recent files"
+      ];
       
-      const completion = await this.openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "system",
-            content: "Generate 3 smart suggestions based on the user's message and available integrations. Return as JSON array of strings."
-          },
-          {
-            role: "user",
-            content: `Current message: ${currentMessage}\nAvailable integrations: ${user.integrations.map(i => i.platform).join(', ')}`
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 200,
-      });
-
-      return JSON.parse(completion.choices[0].message.content);
+      // Return contextual suggestions based on message
+      if (currentMessage.toLowerCase().includes('meeting')) {
+        return [
+          "Schedule for tomorrow at 2 PM",
+          "Find available time slots",
+          "Send calendar invite"
+        ];
+      }
+      
+      if (currentMessage.toLowerCase().includes('email')) {
+        return [
+          "Draft a professional email",
+          "Check my inbox",
+          "Send follow-up email"
+        ];
+      }
+      
+      return suggestions.slice(0, 3);
     } catch (error) {
       console.error('Error generating suggestions:', error);
       return [];
-    }
-  }
-
-  async improveMessage(message, context = '') {
-    try {
-      const completion = await this.openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "system",
-            content: "Improve the user's message to be more clear, professional, and actionable while maintaining their intent and tone."
-          },
-          {
-            role: "user",
-            content: `Original message: ${message}\nContext: ${context}`
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 300,
-      });
-
-      return completion.choices[0].message.content;
-    } catch (error) {
-      console.error('Error improving message:', error);
-      return message;
     }
   }
 }
