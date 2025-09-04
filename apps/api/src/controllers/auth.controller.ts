@@ -1,9 +1,8 @@
-
-import { Request, Response } from 'express';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { z } from 'zod';
-import { prisma } from '../index';
+import { Request, Response } from "express";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { z } from "zod";
+import { prisma } from "../index";
 
 const signupSchema = z.object({
   email: z.string().email(),
@@ -27,7 +26,7 @@ export class AuthController {
       });
 
       if (existingUser) {
-        return res.status(400).json({ error: 'User already exists' });
+        return res.status(400).json({ error: "User already exists" });
       }
 
       // Hash password
@@ -51,13 +50,13 @@ export class AuthController {
       const token = jwt.sign(
         { userId: user.id, email: user.email },
         process.env.JWT_SECRET!,
-        { expiresIn: '7d' }
+        { expiresIn: "7d" }
       );
 
       res.status(201).json({ user, token });
     } catch (error) {
-      console.error('Signup error:', error);
-      res.status(400).json({ error: 'Invalid input' });
+      console.error("Signup error:", error);
+      res.status(400).json({ error: "Invalid input" });
     }
   }
 
@@ -71,21 +70,21 @@ export class AuthController {
       });
 
       if (!user || !user.password) {
-        return res.status(401).json({ error: 'Invalid credentials' });
+        return res.status(401).json({ error: "Invalid credentials" });
       }
 
       // Verify password
       const isValid = await bcrypt.compare(password, user.password);
 
       if (!isValid) {
-        return res.status(401).json({ error: 'Invalid credentials' });
+        return res.status(401).json({ error: "Invalid credentials" });
       }
 
       // Generate token
       const token = jwt.sign(
         { userId: user.id, email: user.email },
         process.env.JWT_SECRET!,
-        { expiresIn: '7d' }
+        { expiresIn: "7d" }
       );
 
       res.json({
@@ -97,8 +96,8 @@ export class AuthController {
         token,
       });
     } catch (error) {
-      console.error('Login error:', error);
-      res.status(400).json({ error: 'Invalid input' });
+      console.error("Login error:", error);
+      res.status(400).json({ error: "Invalid input" });
     }
   }
 
@@ -124,8 +123,33 @@ export class AuthController {
 
       res.json(user);
     } catch (error) {
-      console.error('Me error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error("Me error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+
+  async logout(req: Request, res: Response) {
+    // Stateless JWT logout: handled on client by discarding token
+    return res.status(200).json({ success: true });
+  }
+
+  async refresh(req: Request, res: Response) {
+    try {
+      const userId = (req as any).userId;
+      const email = (req as any).email;
+
+      if (!userId || !email) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const token = jwt.sign({ userId, email }, process.env.JWT_SECRET!, {
+        expiresIn: "7d",
+      });
+
+      return res.json({ token });
+    } catch (error) {
+      console.error("Refresh error:", error);
+      return res.status(500).json({ error: "Internal server error" });
     }
   }
 }

@@ -80,7 +80,9 @@ export class ChatService {
 
       const responseMessage = completion.choices[0].message;
       let finalResponse = responseMessage.content;
-      let actions = null;
+      let actions:
+        | OpenAI.Chat.Completions.ChatCompletionMessageToolCall[]
+        | null = null;
 
       // Handle tool calls
       if (responseMessage.tool_calls) {
