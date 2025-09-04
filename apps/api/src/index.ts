@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { createServer } from "http";
-import { Server } from "socket.io";
+import { Server } from "socket.io";//thses are the somthing u needs to downlaod and use it 
 import { PrismaClient } from "@prisma/client";
 import authRouter from "./routes/auth.routes";
 import chatRouter from "./routes/chat.routes";
