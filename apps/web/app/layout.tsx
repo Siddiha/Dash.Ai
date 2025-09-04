@@ -2,14 +2,12 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
-import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Slashy - The AI for Work",
-  description:
-    "AI assistant that connects to all your tools to complete entire tasks",
+  title: "Dash.AI - The AI for Work",
+  description: "AI assistant that connects to all your tools",
 };
 
 export default function RootLayout({
@@ -20,10 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Providers>
-          {children}
-          <Toaster />
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
