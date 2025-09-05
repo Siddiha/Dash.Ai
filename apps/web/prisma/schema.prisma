@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String?
+  name          String?
+  image         String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  accounts      Account[]
+  sessions      Session[]
+  integrations  Integration[]
+  workflows     Workflow[]
+  conversations Conversation[]
+  subscription  Subscription?
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Integration {
+  id            String    @id @default(cuid())
+  userId        String
+  type          String    // gmail, calendar, notion, slack, etc.
+  accessToken   String    @db.Text
+  refreshToken  String?   @db.Text
+  expiresAt     DateTime?
+  metadata      Json?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, type])
+}
+
+model Workflow {
+  id            String    @id @default(cuid())
+  userId        String
+  name          String
+  description   String?
+  trigger       Json      // Trigger configuration
+  actions       Json      // Array of actions
+  isActive      Boolean   @default(true)
+  lastRun       DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  executions    WorkflowExecution[]
+}
+
+model WorkflowExecution {
+  id            String    @id @default(cuid())
+  workflowId    String
+  status        String    // pending, running, completed, failed
+  result        Json?
+  error         String?
+  startedAt     DateTime  @default(now())
+  completedAt   DateTime?
+  
+  workflow      Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  userId        String
+  title         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages      Message[]
+}
+
+model Message {
+  id            String    @id @default(cuid())
+  conversationId String
+  role          String    // user, assistant, system
+  content       String    @db.Text
+  metadata      Json?     // Store tool calls, actions performed
+  createdAt     DateTime  @default(now())
+  
+  conversation  Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  plan          String    // free, pro, team, enterprise
+  status        String    // active, canceled, past_due
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+

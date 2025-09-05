@@ -47,7 +47,7 @@ export default function LandingPage() {
           <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center">
             <Sparkles className="w-6 h-6 text-white" />
           </div>
-          <span className="text-xl font-bold">Slashy</span>
+          <span className="text-xl font-bold">Dash</span>
         </div>
 
         <div className="hidden md:flex gap-8">
@@ -78,11 +78,11 @@ export default function LandingPage() {
           <Button
             onClick={() => {
               setIsLoading(true);
-              router.push("/login");
+              router.push("/chat");
             }}
             disabled={isLoading}
           >
-            {isLoading ? "Loading..." : "Start now"}
+            {isLoading ? "Loading..." : "Go to Chat"}
           </Button>
         </div>
       </nav>
@@ -127,10 +127,10 @@ export default function LandingPage() {
           <Button
             size="lg"
             className="mb-8 bg-white text-black hover:bg-gray-200"
-            onClick={() => router.push("/login")}
+            onClick={() => router.push("/chat")}
           >
-            <Mail className="mr-2 h-5 w-5" />
-            Start now with Google
+            <MessageSquare className="mr-2 h-5 w-5" />
+            Go to Chat
           </Button>
         </motion.div>
 

@@ -47,96 +47,6 @@ const availableIntegrations: Integration[] = [
     connected: false,
     color: "from-blue-500 to-blue-600",
   },
-  {
-    id: "google-docs",
-    name: "Google Docs",
-    type: "docs",
-    icon: FileText,
-    description: "Create and manage documents",
-    connected: false,
-    color: "from-green-500 to-green-600",
-  },
-  {
-    id: "google-sheets",
-    name: "Google Sheets",
-    type: "sheets",
-    icon: Database,
-    description: "Work with spreadsheets and data",
-    connected: false,
-    color: "from-emerald-500 to-emerald-600",
-  },
-  {
-    id: "google-drive",
-    name: "Google Drive",
-    type: "drive",
-    icon: Box,
-    description: "Access and manage your files",
-    connected: false,
-    color: "from-yellow-500 to-yellow-600",
-  },
-  {
-    id: "slack",
-    name: "Slack",
-    type: "slack",
-    icon: MessageSquare,
-    description: "Send messages and manage channels",
-    connected: false,
-    color: "from-purple-500 to-purple-600",
-  },
-  {
-    id: "notion",
-    name: "Notion",
-    type: "notion",
-    icon: FileText,
-    description: "Create pages and manage databases",
-    connected: false,
-    color: "from-gray-600 to-gray-700",
-  },
-  {
-    id: "linear",
-    name: "Linear",
-    type: "linear",
-    icon: Briefcase,
-    description: "Manage issues and projects",
-    connected: false,
-    color: "from-indigo-500 to-indigo-600",
-  },
-  {
-    id: "hubspot",
-    name: "HubSpot",
-    type: "hubspot",
-    icon: Briefcase,
-    description: "Manage CRM and marketing",
-    connected: false,
-    color: "from-orange-500 to-orange-600",
-  },
-  {
-    id: "dropbox",
-    name: "Dropbox",
-    type: "dropbox",
-    icon: Box,
-    description: "Access your Dropbox files",
-    connected: false,
-    color: "from-sky-500 to-sky-600",
-  },
-  {
-    id: "airtable",
-    name: "Airtable",
-    type: "airtable",
-    icon: Database,
-    description: "Work with Airtable bases",
-    connected: false,
-    color: "from-teal-500 to-teal-600",
-  },
-  {
-    id: "outlook",
-    name: "Outlook",
-    type: "outlook",
-    icon: Mail,
-    description: "Connect your Outlook account",
-    connected: false,
-    color: "from-blue-600 to-blue-700",
-  },
 ];
 
 interface IntegrationPanelProps {
@@ -186,14 +96,14 @@ export default function IntegrationPanel({
 
     try {
       // For Google services, use OAuth flow
-      if (
-        integration.type.startsWith("g") ||
-        integration.type === "calendar" ||
-        integration.type === "docs" ||
-        integration.type === "sheets" ||
-        integration.type === "drive"
-      ) {
-        window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/oauth/google?service=${integration.type}`;
+      if (integration.type === "gmail" || integration.type === "calendar") {
+        const token = localStorage.getItem("token") || "";
+        const state = btoa(
+          JSON.stringify({ token, service: integration.type })
+        );
+        window.location.href = `${
+          process.env.NEXT_PUBLIC_API_URL
+        }/api/integrations/oauth/google?state=${encodeURIComponent(state)}`;
         return;
       }
 
