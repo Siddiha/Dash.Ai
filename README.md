@@ -99,5 +99,5 @@ npm run dev
 - Web (`apps/web`): `npm run dev` | `npm run build` | `npm run prisma:generate`
 
 ## License
-
+MIT
 
