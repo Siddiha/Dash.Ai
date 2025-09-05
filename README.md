@@ -1,4 +1,4 @@
-Dash.AI - AI-Powered Work Assistant Platform
+#Dash.AI - AI-Powered Work Assistant Platform
 A comprehensive AI work automation platform that integrates with Gmail, Google Calendar, Slack, Notion, and more to streamline workflows and automate repetitive tasks.
 🚀 Features
 
@@ -36,25 +36,7 @@ Cache/Queue: Redis with BullMQ
 AI/LLM: OpenAI GPT-4 API
 Authentication: JWT + OAuth 2.0
 
-📁 Project Structure
-Dash.AI/
-├── apps/
-│   ├── web/                    # Next.js Frontend
-│   │   ├── app/                # App Router pages
-│   │   ├── components/         # React components
-│   │   ├── lib/               # Utilities
-│   │   └── public/            # Static assets
-│   │
-│   └── api/                    # Node.js Backend
-│       ├── src/
-│       │   ├── controllers/    # Route handlers
-│       │   ├── services/       # Business logic
-│       │   ├── routes/         # API routes
-│       │   └── middleware/     # Express middleware
-│       └── prisma/             # Database schema
-│
-├── docker-compose.yml
-└── package.json
+
 🚀 Quick Start
 1. Clone the Repository
 bashgit clone https://github.com/yourusername/dash-ai.git
