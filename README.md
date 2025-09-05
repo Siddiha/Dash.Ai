@@ -278,28 +278,3 @@ bash
 cd apps/api
 npx prisma generate
 npx prisma migrate reset --force
-🤝 Contributing
-Fork the repository
-
-Create your feature branch (git checkout -b feature/AmazingFeature)
-
-Commit your changes (git commit -m 'Add some AmazingFeature')
-
-Push to the branch (git push origin feature/AmazingFeature)
-
-Open a Pull Request
-
-📄 License
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-🙏 Acknowledgments
-Built with Next.js, Prisma, and OpenAI
-
-UI components inspired by shadcn/ui
-
-Authentication powered by NextAuth.js
-
-📧 Contact
-Siddiha
-Project Link: https://github.com/yourusername/dash-ai
-
