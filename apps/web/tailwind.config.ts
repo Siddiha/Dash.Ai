@@ -11,6 +11,9 @@ const config: Config = {
       colors: {
         background: "#0a0a0a",
         foreground: "#ffffff",
+        border: "#1e293b",
+        input: "#1e293b",
+        ring: "#3b82f6",
         primary: {
           DEFAULT: "#3b82f6",
           foreground: "#ffffff",
